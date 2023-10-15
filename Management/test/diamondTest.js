@@ -29,7 +29,7 @@ describe('DiamondTest', async function () {
     diamondCutFacet = await ethers.getContractAt('DiamondCutFacet', diamondAddress)
     diamondLoupeFacet = await ethers.getContractAt('DiamondLoupeFacet', diamondAddress)
     ownershipFacet = await ethers.getContractAt('OwnershipFacet', diamondAddress)
-    managementFacet = await ethers.getContractAt('Management', diamondAddress)
+    managementFacet = await ethers.getContractAt('ManagementFacet', diamondAddress)
   })
 
   it('should have 4 facets -- call to facetAddresses function', async () => {
@@ -77,8 +77,11 @@ describe('DiamondTest', async function () {
   it('should test minted call', async () => {
     const amt = 1000
     await managementFacet.updateMinted('0x11ec36418bE9a610904D1409EF0577b645104881', amt)
+    const [minted, burnt] = await managementFacet.getTreeStats('0x11ec36418bE9a610904D1409EF0577b645104881')
 
-    expect(await managementFacet.getTreeStats('0x11ec36418bE9a610904D1409EF0577b645104881')).to.equal([1000, 0 ])
+    mintedDecimal = minted.parseInt() 
+    burntDecimal = burnt.parseInt()
+    expect(mintedDecimal,burntDecimal).to.equal([1000, 0 ])
   })
 
 it('should test burnt call', async () => {
