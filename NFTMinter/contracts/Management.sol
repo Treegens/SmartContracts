@@ -15,7 +15,6 @@ contract Management {
     mapping (address => uint) public burnt;
 
     string[] public baseURIs;
-
   
 
     mapping(address => uint []) public userNFTs;
@@ -111,15 +110,61 @@ contract Management {
 
     }
     function _setURI(string memory _baseURI, uint x, uint y, uint [] memory tokens) internal {
-         uint z = x%y;
+         uint imageID = getImageId(x);
+         uint z = x % y;
+         
               uint prop = (x - z)/y;
             if(prop>5){
                 prop = 5;
             }
             string memory props = Strings.toString(prop);
-            string memory pr = string(abi.encodePacked(_baseURI, props, '/'));
-            setURIs(tokens, pr);    
+            string memory finalURI ;
+            
+              
+
+            //to set the brightness in the specific proportion, we make a 50 tree difference
+            
+           
+            finalURI = string(abi.encodePacked(_baseURI, props, '/', Strings.toString(imageID)));
+             setURIs(tokens, finalURI);
+
         
+
+    }
+
+    function getImageId(uint x) internal pure returns (uint imageID) {
+            // the uint x is in ether, hence is 'x' * 10^^18
+
+            uint _x = x/ 1 ether;
+         if( _x<= 50){
+                imageID = 1;
+               return imageID;
+              
+               
+            }
+            else if( _x <= 100){
+                imageID = 2; 
+               return imageID;
+             
+                
+            }
+             else if( _x <= 150){
+                 imageID = 3;
+               return imageID;
+            
+            }
+             else if( _x <= 200){
+                 imageID = 4;
+               return imageID;
+          
+            }
+             else if( _x <= 250){
+                 imageID = 5;
+               return imageID;
+     
+            } else {
+                return x;
+            }
 
     }
 

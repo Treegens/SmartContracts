@@ -28,6 +28,7 @@ describe("MGRO test", function () {
     await MGMT.addBaseURI("ipfs://QmaHhmm9bwJSF95NDwqyFiCX3LPDi7g6vY2zNXxQuDqgXe/");
   });
 
+  describe("Management Contracts Setup", function () {
   it("Both the minter and MGRO should have the MGMT contract set", async function () {
     const mgtAddress = await MGMT.getAddress();
 
@@ -35,6 +36,8 @@ describe("MGRO test", function () {
     expect(await MGRADD.management()).to.equal(mgtAddress);
   });
 
+});
+describe("ERC20 Token Minting and Burning", function () {
   it("The ERC20 Contract should only allow minting if it is called by the management contract", async function(){
     await expect(MGMT.mintTokens(owner.address, ethers.parseEther('10'))).to.not.be.reverted;
     await expect(MGRADD.mintTokens(owner.address, ethers.parseEther('10'))).to.be.revertedWith("Unauthorized");
@@ -88,6 +91,9 @@ describe("MGRO test", function () {
     await expect(MGRADD.burnTokens(owner.address, ethers.parseEther('5'))).to.be.revertedWith("Unauthorized");
   });
 
+});
+
+describe("Base URI Management", function () {
   it("Should allow owner to set the base URIs", async function(){
     expect(await MGMT.checklength()).to.equal(3);
   });
@@ -96,6 +102,9 @@ describe("MGRO test", function () {
     await expect(MGMT.addBaseURI("ipfs://QmaHhmm9bwJSF95NDwqyFiCX3LPDi7g6vY2zfhjdfgnXe")).to.be.revertedWith("Cannot have more than 3 URIs");
   });
 
+});
+
+describe("NFT Minting and URI Updates", function () {
   it("Users should be able to mint NFTs, and tokenId added to array of owned tokens", async function(){
     await MGMT.mintNFTs();
     expect(await NFTADD.balanceOf(owner.address)).to.be.equal(1);
@@ -110,10 +119,26 @@ describe("MGRO test", function () {
   it("Should update the URI if the minted is greater than burnt", async function(){
     await MGMT.mintNFTs();
     expect(await NFTADD.tokenURI(1)).to.equal("ipfs://QmW3h5dB7yKyacNDfo1XCjjWV5zFyeDZfeVYcpYbx1xuNP");
-    await MGMT.mintTokens(owner.address, ethers.parseEther('10'));
-    await MGMT.burnTokens(ethers.parseEther('5'));
+    await MGMT.mintTokens(owner.address, ethers.parseEther('50'));
+    await MGMT.burnTokens(ethers.parseEther('25'));
     await MGMT.updateNFTs(owner.address);
-    expect(await NFTADD.tokenURI(1)).to.equal("ipfs://Qmbza7VprgNZ8eWzjRFWBaZUj11tZ2kEHVA6VUZGnsGVtu/2/");
+    expect(await NFTADD.tokenURI(1)).to.equal("ipfs://Qmbza7VprgNZ8eWzjRFWBaZUj11tZ2kEHVA6VUZGnsGVtu/2/1");
+  });
+  it("Should update the URI if the minted is greater than burnt and minted is greater than 100", async function(){
+    await MGMT.mintNFTs();
+    expect(await NFTADD.tokenURI(1)).to.equal("ipfs://QmW3h5dB7yKyacNDfo1XCjjWV5zFyeDZfeVYcpYbx1xuNP");
+    await MGMT.mintTokens(owner.address, ethers.parseEther('100'));
+    await MGMT.burnTokens(ethers.parseEther('50'));
+    await MGMT.updateNFTs(owner.address);
+    expect(await NFTADD.tokenURI(1)).to.equal("ipfs://Qmbza7VprgNZ8eWzjRFWBaZUj11tZ2kEHVA6VUZGnsGVtu/2/2");
+  });
+  it("Should update the URI if the minted is greater than burnt and minted is greater than 100", async function(){
+    await MGMT.mintNFTs();
+    expect(await NFTADD.tokenURI(1)).to.equal("ipfs://QmW3h5dB7yKyacNDfo1XCjjWV5zFyeDZfeVYcpYbx1xuNP");
+    await MGMT.mintTokens(owner.address, ethers.parseEther('150'));
+    await MGMT.burnTokens(ethers.parseEther('25'));
+    await MGMT.updateNFTs(owner.address);
+    expect(await NFTADD.tokenURI(1)).to.equal("ipfs://Qmbza7VprgNZ8eWzjRFWBaZUj11tZ2kEHVA6VUZGnsGVtu/5/3");
   });
 
   it("Should update the URI if the burnt is greater than minted", async function(){
@@ -128,6 +153,8 @@ describe("MGRO test", function () {
 
     const [minted, burnt] = await MGMT.checkStats(user1.address);
     expect(burnt).to.be.greaterThan(minted);
-    expect(await NFTADD.tokenURI(2)).to.equal("ipfs://QmaHhmm9bwJSF95NDwqyFiCX3LPDi7g6vY2zNXxQuDqgXe/2/");
+    expect(await NFTADD.tokenURI(2)).to.equal("ipfs://QmaHhmm9bwJSF95NDwqyFiCX3LPDi7g6vY2zNXxQuDqgXe/2/1");
   });
+ 
+});
 });
