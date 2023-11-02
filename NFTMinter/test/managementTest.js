@@ -132,7 +132,7 @@ describe("NFT Minting and URI Updates", function () {
     await MGMT.updateNFTs(owner.address);
     expect(await NFTADD.tokenURI(1)).to.equal("ipfs://Qmbza7VprgNZ8eWzjRFWBaZUj11tZ2kEHVA6VUZGnsGVtu/2/2");
   });
-  it("Should update the URI if the minted is greater than burnt and minted is greater than 100", async function(){
+  it("Should update the URI if the minted is greater than burnt and minted is greater than 150", async function(){
     await MGMT.mintNFTs();
     expect(await NFTADD.tokenURI(1)).to.equal("ipfs://QmW3h5dB7yKyacNDfo1XCjjWV5zFyeDZfeVYcpYbx1xuNP");
     await MGMT.mintTokens(owner.address, ethers.parseEther('150'));
