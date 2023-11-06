@@ -2,10 +2,10 @@ const { expect } = require("chai");
 const { ethers } = require("hardhat");
 
 describe("TGN Test", function () {
-  let owner, user1, TGNToken, Staking, TGN, STK;
+  let owner, user1,user2, user3, TGNToken, Staking, TGN, STK;
 
   beforeEach(async function () {
-    [owner, user1] = await ethers.getSigners();
+    [owner, user1, user2, user3] = await ethers.getSigners();
     TGNToken = await ethers.getContractFactory('TGNToken');
     Staking = await ethers.getContractFactory('TGNVault');
     
@@ -58,5 +58,58 @@ describe("TGN Test", function () {
  
 
   })
+  it("Should send the staking address tokens", async function(){
+    const add = await STK.getAddress()
+    await TGN.mint(add, ethers.parseEther('50000000'))
+
+    expect(await TGN.balanceOf(add)).to.equal(ethers.parseEther('50000000'))
+
+  })
+  it("Should send the staking address tokens", async function(){
+    const add = await STK.getAddress()
+    await TGN.mint(add, ethers.parseEther('50000000'))
+    expect(await TGN.balanceOf(add)).to.equal(ethers.parseEther('50000000'))
+  })
+  it("Should take in addresses and amounts for the pre-stake", async function(){
+    const add = await STK.getAddress()
+    await TGN.mint(add, ethers.parseEther('50000000'))
+    await STK.allocateTokens([user1.address, user2.address, user3.address], [ethers.parseEther('500'),ethers.parseEther('1000'),ethers.parseEther('600')])
+
+    expect(await STK.checkAllocation(user1.address)).to.equal(ethers.parseEther('500'))
+    expect(await STK.checkAllocation(user2.address)).to.equal(ethers.parseEther('1000'))
+    expect(await STK.checkAllocation(user3.address)).to.equal(ethers.parseEther('600'))
+
+  })
+  it("Should not allow a user to claim until 15th January", async function(){
+    const add = await STK.getAddress()
+    await TGN.mint(add, ethers.parseEther('50000000'))
+    await STK.allocateTokens([user1.address, user2.address, user3.address], [ethers.parseEther('500'),ethers.parseEther('1000'),ethers.parseEther('600')])
+
+    await expect( STK.connect(user1).claimTokens()).to.be.revertedWith("Tokens can't be claimed yet")
+    await network.provider.send("evm_setNextBlockTimestamp", [1705490015]);
+    await expect( STK.connect(user1).claimTokens()).to.not.be.reverted
+
+
+    
+  })
+  it("Should not allow a user to claim without an allocation", async function(){
+    const add = await STK.getAddress()
+    await TGN.mint(add, ethers.parseEther('50000000'))
+    await STK.allocateTokens([user1.address, user2.address, user3.address], [ethers.parseEther('500'),ethers.parseEther('1000'),ethers.parseEther('600')])
+    //await network.provider.send("evm_setNextBlockTimestamp", [1705490015]);
+    await expect(STK.claimTokens()).to.be.revertedWith("No tokens allocated to this address")
+
+  })
+  it("Should not allow users to claim more than once", async function(){
+    const add = await STK.getAddress()
+    await TGN.mint(add, ethers.parseEther('50000000'))
+    await STK.allocateTokens([user1.address, user2.address, user3.address], [ethers.parseEther('500'),ethers.parseEther('1000'),ethers.parseEther('600')])
+    //await network.provider.send("evm_setNextBlockTimestamp", [1705490015]);
+    await (STK.connect(user2).claimTokens())
+
+    expect(await STK.checkClaimStatus(user2.address)).to.equal(true)
+    
+  })
+
 
 })

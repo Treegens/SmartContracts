@@ -20,7 +20,7 @@ contract TGNVault is Ownable {
 
     constructor(address _tgnToken) Ownable(msg.sender) {
         tgnToken = IERC20(_tgnToken);
-        releaseDate = 1682241600; // Approximate timestamp for 15th January 2024
+        releaseDate = 1705490014; // Approximate timestamp for 15th January 2024
     }
 
     function allocateTokens(address[] calldata _contributors, uint256[] calldata _tokenAmounts) external onlyOwner {
@@ -38,7 +38,7 @@ contract TGNVault is Ownable {
     function claimTokens() external {
         require(block.timestamp >= releaseDate, "Tokens can't be claimed yet");
         require(contributors[msg.sender].allocatedTokens > 0, "No tokens allocated to this address");
-        require(!contributors[msg.sender].hasClaimed, "Tokens already claimed for this address");
+        // require(!contributors[msg.sender].hasClaimed, "Tokens already claimed for this address");
 
         uint256 tokenAmount = contributors[msg.sender].allocatedTokens;
         contributors[msg.sender].hasClaimed = true;
@@ -50,5 +50,13 @@ contract TGNVault is Ownable {
     // Owner can change the release date if necessary
     function setReleaseDate(uint256 _newReleaseDate) external onlyOwner {
         releaseDate = _newReleaseDate;
+    }
+
+
+    function checkAllocation(address _address) public view returns( uint){
+        return contributors[_address].allocatedTokens;
+    }
+    function checkClaimStatus(address _address) public view returns(bool){
+        return contributors[_address].hasClaimed;
     }
 }
