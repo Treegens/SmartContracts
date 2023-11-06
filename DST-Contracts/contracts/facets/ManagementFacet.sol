@@ -2,6 +2,8 @@
 pragma solidity ^0.8.0;
 
 import { LibDiamond } from "../libraries/LibDiamond.sol";
+import {MyToken}  from '../NFTMinter.sol';
+
 
 
 contract ManagementFacet {
@@ -21,7 +23,7 @@ contract ManagementFacet {
 
     function updateURI(uint _tokenId) external {
          LibDiamond.DiamondStorage  storage ds  = LibDiamond.diamondStorage();
-        address _owner = ds.minter.ownerOf(_tokenId);
+        address _owner = ds.token.ownerOf(_tokenId);
         (uint minted, uint burnt) = getTreeStats(_owner);
 
         //check which is greater between the 2 
@@ -44,7 +46,7 @@ contract ManagementFacet {
         
     }
 
-function setBrighterMind (uint _tokenid, uint minted, uint burnt) internal {
+function setBrighterMind (uint minted, uint burnt) internal {
 
     //Set the baseURI to the one with brighter Mind than the heart
     
@@ -99,7 +101,7 @@ function calculateProportionality(uint x, uint y) internal pure returns(uint) {
 
 function setMinterAddress (address _minter) external {
      LibDiamond.DiamondStorage  storage ds  = LibDiamond.diamondStorage();
-     ds.minter = ERC721(_minter);
+     ds.token = MyToken(_minter);
 }
 
 }
