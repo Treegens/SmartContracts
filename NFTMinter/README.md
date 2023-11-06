@@ -15,6 +15,20 @@ ARAGON DAO governance tested and working well
     ✔ Should update the URI if the minted is greater than burnt 
     ✔ Should update the URI if the burnt is greater than minted 
 
+    
+ TGN Test
+    ✔ Should allow owner to mint tokens
+    ✔ Users can transfer tokens (39ms)
+    ✔ Should have the correct name, symbol and decimals
+    ✔ Users can approve token usage by another contract
+    ✔ Owner can mint 300M Tokens max (104ms)
+
+Staking Test
+    ✔ Should send the staking address tokens
+    ✔ Should take in addresses and amounts for the pre-stake (39ms)
+    ✔ Should not allow a user to claim until 15th January (55ms)
+    ✔ Should not allow a user to claim without an allocation
+    ✔ Should not allow users to claim more than once (44ms)
 
 
 
