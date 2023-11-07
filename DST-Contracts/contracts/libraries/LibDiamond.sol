@@ -6,7 +6,7 @@ pragma solidity ^0.8.0;
 * EIP-2535 Diamonds: https://eips.ethereum.org/EIPS/eip-2535
 /******************************************************************************/
 import { IDiamondCut } from "../interfaces/IDiamondCut.sol";
-import {MyToken}  from '../NFTMinter.sol';
+
 
 
 // Remember to add the loupe functions from DiamondLoupeFacet to the diamond.
@@ -42,13 +42,12 @@ library LibDiamond {
         mapping(bytes4 => bool) supportedInterfaces;
         // owner of the contract
         address contractOwner;
-
-        MyToken token;
-
+        address  dao;
         string [] baseURIs;
-
-        mapping (address => uint) totalMinted;
-        mapping (address => uint) totalBurnt;
+        mapping (address => uint) minted;
+        mapping (address => uint) burnt;
+        mapping(address => uint[])  userNFTs;
+        uint nftCount;
     }
 
     function diamondStorage() internal pure returns (DiamondStorage storage ds) {

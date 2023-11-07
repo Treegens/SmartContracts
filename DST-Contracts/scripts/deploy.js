@@ -1,18 +1,11 @@
 /* global ethers */
 /* eslint prefer-const: "off" */
 
-const { ethers } = require('hardhat')
 const { getSelectors, FacetCutAction } = require('./libraries/diamond.js')
 
 async function deployDiamond () {
   const accounts = await ethers.getSigners()
   const contractOwner = accounts[0]
-
-  //deploy NFTMinter
-  const NFTs = await ethers.getContractFactory("MyToken")
-  const NFT = await NFTs.deploy(contractOwner.address);
-  await NFT.deployed()
-  console.log("NFT Contract: ", NFT.address)
 
   // deploy DiamondCutFacet
   const DiamondCutFacet = await ethers.getContractFactory('DiamondCutFacet')
@@ -40,7 +33,7 @@ async function deployDiamond () {
   const FacetNames = [
     'DiamondLoupeFacet',
     'OwnershipFacet',
-    'Management'
+    'ManagementFacet'
   ]
   const cut = []
   for (const FacetName of FacetNames) {
