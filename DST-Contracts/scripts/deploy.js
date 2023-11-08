@@ -2,6 +2,7 @@
 /* eslint prefer-const: "off" */
 
 const { getSelectors, FacetCutAction } = require('./libraries/diamond.js')
+const {ethers} = require('hardhat')
 
 async function deployDiamond () {
   const accounts = await ethers.getSigners()
@@ -33,7 +34,7 @@ async function deployDiamond () {
   const FacetNames = [
     'DiamondLoupeFacet',
     'OwnershipFacet',
-    'ManagementFacet'
+    'ManagementFacet',
   ]
   const cut = []
   for (const FacetName of FacetNames) {

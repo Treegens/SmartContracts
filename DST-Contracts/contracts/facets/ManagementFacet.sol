@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: SEE LICENSE IN LICENSE
-pragma solidity 0.8.20;
+pragma solidity 0.8.17;
 
 import { LibDiamond } from "../libraries/LibDiamond.sol";
 import "../MGRO.sol";
@@ -9,12 +9,12 @@ contract ManagementFacet {
     IMGrow private mgrow;
     IMinter private minter;
 
-   function initialize(address _minter, address _token, address _dao) external {
-        require(_minter != address(0) || _token != address(0) || _dao != address(0), "Invalid Addresses");
+   function initialize(address _minter, address _token /*, address _dao*/) external {
+        require(_minter != address(0) || _token != address(0) /*|| _dao != address(0)*/, "Invalid Addresses");
         LibDiamond.DiamondStorage storage ds = LibDiamond.diamondStorage();
         mgrow = IMGrow(_token);
         minter = IMinter(_minter);
-        ds.dao = _dao;
+       // ds.dao = _dao;
         ds.nftCount = 0;
     }
     // Function to add base URI

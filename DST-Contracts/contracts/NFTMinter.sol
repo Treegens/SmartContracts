@@ -1,6 +1,6 @@
 
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.20;
+pragma solidity 0.8.17;
 
 import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
 import "@openzeppelin/contracts/token/ERC721/extensions/ERC721URIStorage.sol";
@@ -11,7 +11,7 @@ contract TreegenNFT is ERC721, ERC721URIStorage, Ownable {
     address public management;
     constructor()
         ERC721("Treegen", "Treegen")
-        Ownable(msg.sender)
+        
     {}
 
 
@@ -43,7 +43,7 @@ contract TreegenNFT is ERC721, ERC721URIStorage, Ownable {
    
     }
 
-    function transferFrom(address from, address to, uint256 tokenId) public override(IERC721, ERC721) {
+    function transferFrom(address from, address to, uint256 tokenId) public override(ERC721) {
         //require(from == address(0)|| from == owner, "This is a soulbound NFT: Cannot be transferred");
         super.transferFrom(from, to, tokenId);
         _setTokenURI(tokenId, '1.json');
@@ -53,7 +53,7 @@ contract TreegenNFT is ERC721, ERC721URIStorage, Ownable {
         address to,
         uint256 tokenId,
         bytes memory data
-    ) public override(IERC721, ERC721) {
+    ) public override(ERC721) {
         super.safeTransferFrom(from, to, tokenId, data);
          _setTokenURI(tokenId, '1.json');
 
@@ -69,11 +69,16 @@ contract TreegenNFT is ERC721, ERC721URIStorage, Ownable {
     {
         return super.tokenURI(tokenId);
     }
+    function _burn(uint256 tokenId) internal virtual override(ERC721, ERC721URIStorage) {
+        super._burn(tokenId);
+
+       
+    }
 
     function supportsInterface(bytes4 interfaceId)
         public
         view
-        override(ERC721, ERC721URIStorage)
+        override(ERC721)
         returns (bool)
     {
         return super.supportsInterface(interfaceId);

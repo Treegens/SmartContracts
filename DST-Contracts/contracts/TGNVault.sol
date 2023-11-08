@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.0;
+pragma solidity 0.8.17;
 
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
@@ -18,7 +18,7 @@ contract TGNVault is Ownable {
     event TokensAllocated(address indexed contributor, uint256 amount);
     event TokensClaimed(address indexed contributor, uint256 amount);
 
-    constructor(address _tgnToken) Ownable(msg.sender) {
+    constructor(address _tgnToken) {
         tgnToken = IERC20(_tgnToken);
         releaseDate = 1705490014; // Approximate timestamp for 15th January 2024
     }
