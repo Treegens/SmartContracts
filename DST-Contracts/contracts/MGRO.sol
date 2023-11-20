@@ -4,10 +4,10 @@ pragma solidity 0.8.17;
 import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 
-contract MGROW is ERC20, Ownable {
+contract MGRO is ERC20, Ownable {
 
     address public management;
-    constructor()ERC20("MGROW", "MGROW"){
+    constructor()ERC20("MGRO", "MGRO"){
         
             }
 
@@ -34,7 +34,7 @@ contract MGROW is ERC20, Ownable {
     }
 }
 
-interface IMGrow {
+interface IMGro {
 
      function mintTokens(address _receiver, uint _tokens) external;
     function burnTokens(address _address, uint tokenAmt) external;
