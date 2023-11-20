@@ -6,15 +6,15 @@ import "../MGRO.sol";
 import "../NFTMinter.sol";
 
 contract ManagementFacet {
-    IMGrow private mgrow;
+    IMGro private mgro;
     IMinter private minter;
 
-   function initialize(address _minter, address _token /*, address _dao*/) external {
+   function initialize(address _minter, address _token /*, address _dao*/) external  {
         require(_minter != address(0) || _token != address(0) /*|| _dao != address(0)*/, "Invalid Addresses");
         LibDiamond.DiamondStorage storage ds = LibDiamond.diamondStorage();
-        mgrow = IMGrow(_token);
+        mgro = IMGro(_token);
         minter = IMinter(_minter);
-       // ds.dao = _dao;
+        //ds.dao = _dao;
         ds.nftCount = 0;
     }
     // Function to add base URI
@@ -46,13 +46,14 @@ contract ManagementFacet {
 
     function mintTokens(address _receiver, uint _tokens) external {
         LibDiamond.DiamondStorage storage ds = LibDiamond.diamondStorage();
-        mgrow.mintTokens(_receiver, _tokens);
+      //  require(msg.sender == ds.dao, "Only the DAO can mint MGRO tokens");
+        mgro.mintTokens(_receiver, _tokens);
         ds.minted[_receiver] += _tokens;
     }
 
     function burnTokens(uint _tokens) external {
         LibDiamond.DiamondStorage storage ds = LibDiamond.diamondStorage();
-        mgrow.burnTokens(msg.sender, _tokens);
+        mgro.burnTokens(msg.sender, _tokens);
         ds.burnt[msg.sender] += _tokens;
     }
 
