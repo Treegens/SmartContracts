@@ -37,7 +37,7 @@ describe('DiamondTest', async function () {
 
       // Deploy Minter and MGRO contracts
       Minter = await ethers.getContractFactory('TreegenNFT');
-      MGRO = await ethers.getContractFactory('MGROW');
+      MGRO = await ethers.getContractFactory('MGRO');
       MGRADD = await MGRO.deploy();
       NFTADD = await Minter.deploy();
       
@@ -56,6 +56,7 @@ describe('DiamondTest', async function () {
       await managementFacet.addBaseURI("ipfs://QmW3h5dB7yKyacNDfo1XCjjWV5zFyeDZfeVYcpYbx1xuNP");
       await managementFacet.addBaseURI("ipfs://Qmbza7VprgNZ8eWzjRFWBaZUj11tZ2kEHVA6VUZGnsGVtu/");
       await managementFacet.addBaseURI("ipfs://QmaHhmm9bwJSF95NDwqyFiCX3LPDi7g6vY2zNXxQuDqgXe/");
+      
   })
 
   it('should have 4 facets -- call to facetAddresses function', async () => {
