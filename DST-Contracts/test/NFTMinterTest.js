@@ -64,8 +64,16 @@ describe("TGN Test", function () {
  
 
   })
+  it("Should allow owner to mint tokens without a timelock", async function(){
+    await TGN.mint(user3.address, ethers.utils.parseEther('10'));
+    expect(await TGN.balanceOf(user3.address)).to.equal(ethers.utils.parseEther('10'))
 
-  it("Should not allow a user to claim until 15th January", async function(){
+
+    await expect(TGN.connect(user3).transfer(user1.address, ethers.utils.parseEther('5'))).to.not.be.reverted
+    await expect(TGN.transferFrom(user3.address, user1.address, ethers.utils.parseEther('5'))).to.not.be.reverted
+  })
+
+  it("Should not allow a user to transfer until 15th January", async function(){
     const add = await STK.address
     await TGN.mintWithTimelock(owner.address, ethers.utils.parseEther('50000000'), 1705490014)
    // await STK.allocateTokens([user1.address, user2.address, user3.address], [ethers.utils.parseEther('500'),ethers.utils.parseEther('1000'),ethers.utils.parseEther('600')])
@@ -81,6 +89,17 @@ describe("TGN Test", function () {
     expect(await TGN.balanceOf(user1.address)).to.equal(ethers.utils.parseEther('10'))
     
   })
+  
+
+  it("Should only allow the owner to Mint tokens", async function(){
+    await expect(TGN.connect(owner).mint(user1.address, ethers.utils.parseEther('10'))).to.not.be.reverted
+    await expect(TGN.connect(owner).mintWithTimelock(user1.address, ethers.utils.parseEther('10'),1705490045)).to.not.be.reverted
+
+
+    await expect(TGN.connect(user1).mint(user1.address, ethers.utils.parseEther('10'))).to.be.reverted
+
+  })
+
 
 
  })
