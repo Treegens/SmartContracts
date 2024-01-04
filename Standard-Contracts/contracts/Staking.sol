@@ -18,7 +18,7 @@ contract TGNVault is Ownable {
     event TokensAllocated(address indexed contributor, uint256 amount);
     event TokensClaimed(address indexed contributor, uint256 amount);
 
-    constructor(address _tgnToken) Ownable(msg.sender) {
+    constructor(address _tgnToken) {
         tgnToken = IERC20(_tgnToken);
         releaseDate = 1705490014; // Approximate timestamp for 15th January 2024
     }
@@ -51,7 +51,6 @@ contract TGNVault is Ownable {
     function setReleaseDate(uint256 _newReleaseDate) external onlyOwner {
         releaseDate = _newReleaseDate;
     }
-
 
     function checkAllocation(address _address) public view returns( uint){
         return contributors[_address].allocatedTokens;

@@ -11,7 +11,7 @@ contract MyToken is ERC721, ERC721URIStorage, Ownable {
     address public management;
     constructor()
         ERC721("MyToken", "MTK")
-        Ownable(msg.sender)
+      
     {}
 
 
