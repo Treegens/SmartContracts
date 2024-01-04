@@ -5,7 +5,7 @@ import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/token/ERC20/extensions/ERC20Votes.sol";
 
 contract TGNToken is ERC20, Ownable, ERC20Permit, ERC20Votes {
-  uint public maxSupply;
+  uint256 public maxSupply;
   mapping(address=>bool) public isTimelocked;
   mapping (address => uint) public transferLock;
     constructor()
@@ -15,6 +15,7 @@ contract TGNToken is ERC20, Ownable, ERC20Permit, ERC20Votes {
      maxSupply = 300000000 *10**18;
     }
 
+
     function mintWithTimelock(address to, uint256 amount, uint256 releaseDate) public onlyOwner {
      require(totalSupply() + amount <= maxSupply, "Exceeds max supply");
      require(releaseDate >block.timestamp, "Release Time cannot be less than current block time");
@@ -22,6 +23,8 @@ contract TGNToken is ERC20, Ownable, ERC20Permit, ERC20Votes {
         isTimelocked[to]=true;
         transferLock[to] = releaseDate;
     }
+
+    //the addresses minted to can transfer tokens immediately
     function mint(address to, uint256 amount) public onlyOwner {
     require(totalSupply() + amount <= maxSupply, "Exceeds max supply");
     require(to != address(0), "Invalid Address"); // Check for a valid address

@@ -8,17 +8,30 @@ import "../NFTMinter.sol";
 contract ManagementFacet {
     IMGro private mgro;
     IMinter private minter;
+    
+    uint256 count = 0;
 
-   function initialize(address _minter, address _token /*, address _dao*/) external  {
-        require(_minter != address(0) || _token != address(0) /*|| _dao != address(0)*/, "Invalid Addresses");
+    address private owner;
+
+    modifier onlyOwner {
+        if(msg.sender != owner) revert();
+        _;
+    }
+
+   function initialize(address _minter, address _token , address _dao) external  {
+        require(count == 0, " Can only be run once");
+        require(_minter != address(0) || _token != address(0) || _dao != address(0), "Invalid Addresses");
+        
         LibDiamond.DiamondStorage storage ds = LibDiamond.diamondStorage();
+        owner = msg.sender;
         mgro = IMGro(_token);
         minter = IMinter(_minter);
-        //ds.dao = _dao;
+        ds.dao = _dao;
         ds.nftCount = 0;
+        count++;
     }
     // Function to add base URI
-    function addBaseURI(string memory _URI) external {
+    function addBaseURI(string memory _URI) external onlyOwner {
         LibDiamond.DiamondStorage storage ds = LibDiamond.diamondStorage();
         require(ds.baseURIs.length < 3, "Cannot have more than 3 URIs");
         ds.baseURIs.push(_URI);
@@ -46,7 +59,7 @@ contract ManagementFacet {
 
     function mintTokens(address _receiver, uint _tokens) external {
         LibDiamond.DiamondStorage storage ds = LibDiamond.diamondStorage();
-      //  require(msg.sender == ds.dao, "Only the DAO can mint MGRO tokens");
+        require(msg.sender == ds.dao, "Only the DAO can mint MGRO tokens");
         mgro.mintTokens(_receiver, _tokens);
         ds.minted[_receiver] += _tokens;
     }

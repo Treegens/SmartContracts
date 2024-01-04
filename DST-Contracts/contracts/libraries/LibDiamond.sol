@@ -47,7 +47,7 @@ library LibDiamond {
         mapping (address => uint) minted;
         mapping (address => uint) burnt;
         mapping(address => uint[])  userNFTs;
-        uint nftCount;
+        uint256 nftCount;
     }
 
     function diamondStorage() internal pure returns (DiamondStorage storage ds) {
