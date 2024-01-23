@@ -110,12 +110,18 @@ contract ManagementFacet {
     // Function to set URI based on user statistics
     function _setURI(string memory _baseURI, uint x, uint y, uint[] memory tokens) internal {
         uint imageID = getImageId(x);
+
         uint z = x % y;
-        uint prop = (x - z) / y;
+        uint prop = 1; 
+
+        if (x > 0 && y > 0){
+        prop = (x - z) / y;
 
         if (prop > 5) {
             prop = 5;
         }
+        }
+        
         string memory props = Strings.toString(prop);
         string memory finalURI;
 
