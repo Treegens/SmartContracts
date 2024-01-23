@@ -29,7 +29,7 @@ contract MGRO is ERC20, Ownable {
     }
 
     function burnTokens(address _address, uint tokenAmt) external onlyManagement {
-        require(balanceOf(_address)>tokenAmt, "Not Enough tokens to burn");
+        require(balanceOf(_address)>=tokenAmt, "Not Enough tokens to burn");
         _burn(_address, tokenAmt);
     }
 }
