@@ -46,7 +46,8 @@ contract TreegenNFT is ERC721, ERC721URIStorage, Ownable {
     function transferFrom(address from, address to, uint256 tokenId) public override(ERC721) {
         //require(from == address(0)|| from == owner, "This is a soulbound NFT: Cannot be transferred");
         super.transferFrom(from, to, tokenId);
-        _setTokenURI(tokenId, '1.json');
+       string memory _uri = string(abi.encodePacked(_baseURI(), '1'));
+         _setTokenURI(tokenId, _uri);
     }
     function safeTransferFrom(
         address from,
@@ -55,7 +56,8 @@ contract TreegenNFT is ERC721, ERC721URIStorage, Ownable {
         bytes memory data
     ) public override(ERC721) {
         super.safeTransferFrom(from, to, tokenId, data);
-         _setTokenURI(tokenId, '1.json');
+        string memory _uri = string(abi.encodePacked(_baseURI(), '1'));
+         _setTokenURI(tokenId, _uri);
 
     }
 

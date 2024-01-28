@@ -7,6 +7,9 @@ pragma solidity ^0.8.0;
 /******************************************************************************/
 import { IDiamondCut } from "../interfaces/IDiamondCut.sol";
 
+import "../MGRO.sol";
+import "../NFTMinter.sol";
+
 
 
 // Remember to add the loupe functions from DiamondLoupeFacet to the diamond.
@@ -48,6 +51,16 @@ library LibDiamond {
         mapping (address => uint) burnt;
         mapping(address => uint[])  userNFTs;
         uint256 nftCount;
+        uint256 count;
+
+         IMGro  mgro;
+         IMinter  minter;
+
+   
+    
+    
+
+    
     }
 
     function diamondStorage() internal pure returns (DiamondStorage storage ds) {
