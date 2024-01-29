@@ -9,10 +9,13 @@ import "@openzeppelin/contracts/access/Ownable.sol";
 contract TreegenNFT is ERC721, ERC721URIStorage, Ownable {
 
     address public management;
-    constructor()
+    string private defaultURI;
+    constructor(string memory _defaultURI)
         ERC721("Treegen", "Treegen")
         
-    {}
+    {
+        defaultURI = _defaultURI;
+    }
 
 
     function setManagementContract(address _address) public onlyOwner{
@@ -46,7 +49,7 @@ contract TreegenNFT is ERC721, ERC721URIStorage, Ownable {
     function transferFrom(address from, address to, uint256 tokenId) public override(ERC721) {
         //require(from == address(0)|| from == owner, "This is a soulbound NFT: Cannot be transferred");
         super.transferFrom(from, to, tokenId);
-       string memory _uri = string(abi.encodePacked(_baseURI(), '1'));
+       string memory _uri = string(abi.encodePacked(defaultURI, '1'));
          _setTokenURI(tokenId, _uri);
     }
     function safeTransferFrom(
@@ -56,7 +59,7 @@ contract TreegenNFT is ERC721, ERC721URIStorage, Ownable {
         bytes memory data
     ) public override(ERC721) {
         super.safeTransferFrom(from, to, tokenId, data);
-        string memory _uri = string(abi.encodePacked(_baseURI(), '1'));
+        string memory _uri = string(abi.encodePacked(defaultURI, '1'));
          _setTokenURI(tokenId, _uri);
 
     }

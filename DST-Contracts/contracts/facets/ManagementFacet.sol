@@ -6,6 +6,8 @@ import "../MGRO.sol";
 import "../NFTMinter.sol";
 
 contract ManagementFacet {
+    // event LogImgNo(uint256);
+    // event LogBaseURI(string);
     
 
     modifier onlyOwner {
@@ -14,16 +16,16 @@ contract ManagementFacet {
         _;
     }
 
-   function initialize(address _minter, address _token  /*, address _dao*/) external  {
+   function initialize(address _minter, address _token  , address _dao) external  {
         LibDiamond.DiamondStorage storage ds = LibDiamond.diamondStorage();
         require(ds.count == 0, " Can only be run once");
-        require(_minter != address(0) || _token != address(0)  /*|| _dao != address(0), "Invalid Addresses"*/);
+        require(_minter != address(0) || _token != address(0)  || _dao != address(0), "Invalid Addresses");
         
     
        // owner = msg.sender;
         ds.mgro = IMGro(_token);
         ds.minter = IMinter(_minter);
-        //ds.dao = _dao;
+        ds.dao = _dao;
         ds.nftCount = 0;
         ds.count++;
     }
@@ -56,14 +58,16 @@ contract ManagementFacet {
 
     function mintTokens(address _receiver, uint256 _tokens) external {
         LibDiamond.DiamondStorage storage ds = LibDiamond.diamondStorage();
-        //require(msg.sender == ds.dao, "Only the DAO can mint MGRO tokens");
-        ds.mgro.mintTokens(_receiver, _tokens);
+        require(msg.sender == ds.dao, "Only the DAO can mint MGRO tokens");
+        uint256 token = _tokens * 10 **18;
+        ds.mgro.mintTokens(_receiver, token);
         ds.minted[_receiver] += _tokens;
     }
 
     function burnTokens(uint256 _tokens) external {
         LibDiamond.DiamondStorage storage ds = LibDiamond.diamondStorage();
-        ds.mgro.burnTokens(msg.sender, _tokens);
+        uint256 token = _tokens *10 **18;
+        ds.mgro.burnTokens(msg.sender, token);
         ds.burnt[msg.sender] += _tokens;
     }
 
@@ -83,7 +87,16 @@ contract ManagementFacet {
         (uint256 _minted, uint256 _burnt) = checkStats(_address);
         string storage _baseURI;
 
-        if (_minted == _burnt) {
+    uint256 total = _minted + _burnt;
+    uint256 percentageX = ( _minted * 100) / total;
+    uint256 percentageY = ( _burnt * 100) / total;
+
+    // Round percentages to the nearest 10%
+    uint256 roundedX = roundToNearestTen(percentageX);
+    uint256 roundedY = roundToNearestTen(percentageY);
+
+
+        if (roundedX == roundedY) {
             string memory _URI;
             _baseURI = ds.baseURIs[0];
            if(_minted > 0 ){
@@ -94,12 +107,12 @@ contract ManagementFacet {
 
             setURIs(tokens, _URI);
 
-        } else if (_minted > _burnt) {
+        } else if (roundedX > roundedY) {
             _baseURI = ds.baseURIs[1];
-            _setURI(_baseURI, _minted, _burnt, tokens);
+            _setURI(_baseURI, roundedX, roundedY, tokens);
         } else {
             _baseURI = ds.baseURIs[2];
-            _setURI(_baseURI, _burnt, _minted, tokens);
+            _setURI(_baseURI, roundedY, roundedX, tokens);
         }
     }
 
@@ -115,44 +128,38 @@ contract ManagementFacet {
 
     //Get the Percentages from the closest 10%
     function _setURI(string memory _baseURI, uint256 x, uint256 y, uint[] memory tokens) internal {
-           LibDiamond.DiamondStorage storage ds = LibDiamond.diamondStorage();
+    LibDiamond.DiamondStorage storage ds = LibDiamond.diamondStorage();
 
     uint256 imgNo;
     string memory _base; 
 
-    uint256 total = x + y;
-    uint256 percentageX = (x * 100) / total;
-    uint256 percentageY = (y * 100) / total;
-
-    // Round percentages to the nearest 10%
-    uint256 roundedX = roundToNearestTen(percentageX);
-    uint256 roundedY = roundToNearestTen(percentageY);
+  
 
     // Log values for debugging
    // emit LogValues(roundedX, roundedY); // Add an event LogValues(uint256 x, uint256 y) to your contract
 
     //img 1
-    if (roundedX == 100 && roundedY == 0) {
+    if (x == 100 && y == 0) {
         _base = _baseURI;
         imgNo = 1;
     }
     //img2 
-    else if (roundedX == 90 && roundedY == 10) {
+    else if (x == 90 && y == 10) {
         _base = _baseURI;
         imgNo = 2;
     }
     //img3
-    else if (roundedX == 80 && roundedY == 20) {
+    else if (x == 80 && y == 20) {
         _base = _baseURI;
         imgNo = 3;
     }
     //img4
-    else if (roundedX == 70 && roundedY == 30) {
+    else if (x == 70 && y == 30) {
         _base = _baseURI;
         imgNo = 4;
     }
     //img5
-    else if (roundedX == 60 && roundedY == 40) {
+    else if (x == 60 && y == 40) {
         _base = _baseURI;
         imgNo = 5;
     }
@@ -164,16 +171,18 @@ contract ManagementFacet {
     }
 
     // Log imgNo for debugging
-    //emit LogImgNo(imgNo); // Add an event LogImgNo(uint256 imgNo) to your contract
+   // emit LogImgNo(imgNo); // Add an event LogImgNo(uint256 imgNo) to your contract
 
     string memory props = Strings.toString(imgNo);
     string memory finalURI;
 
     // Log values for debugging
-    //emit LogBaseURI(_baseURI); // Add an event LogBaseURI(string _baseURI) to your contract
+   
 
     finalURI = string(abi.encodePacked(_base, props));
+   // emit LogBaseURI(_baseURI); // Add an event LogBaseURI(string _baseURI) to your contract
     setURIs(tokens, finalURI);
+
 }
 
     function roundToNearestTen(uint256 value) internal pure returns (uint256) {

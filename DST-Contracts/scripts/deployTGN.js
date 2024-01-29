@@ -18,11 +18,11 @@ async function main() {
   console.log("MGRO Contract Address: ", MGROToken.address);
 
   const NFT = await hre.ethers.getContractFactory('TreegenNFT')
-  const NFTMinter = await NFT.deploy();
+  const NFTMinter = await NFT.deploy("ipfs://QmXzFFAoqVuNvmHhGjHf83fuPoNcYchgqnoApQ7TQrawdH/");
   console.log("Treegens NFT Contract Address: ", NFTMinter.address);
 
   const DAO = await hre.ethers.getContractFactory('TGNDAO');
-  const TGNDAO = await DAO.deploy(TGNToken.address, 4, 7200, 300 );
+  const TGNDAO = await DAO.deploy(TGNToken.address, 4, 300, 300 );
   console.log("DAO Contract Address: ", TGNDAO.address);
 
   const diamondAddress = deployDiamond();
@@ -31,13 +31,20 @@ async function main() {
       ownershipFacet = await ethers.getContractAt('OwnershipFacet', diamondAddress);
       managementFacet = await ethers.getContractAt('ManagementFacet', diamondAddress);
 
-
+  //  TGNDAO = '0xC808A0B23de47691CCF0DB1fb948Fe67f7FC8BE5'
+  //  MGRO = '0x4df88c93779eCE53D8EaB0ad714a7AafE928a059'
+  //  TGNFT = '0x8b3b92004C9Dc05440309458fE8B970dd93AF18c'
 
       await managementFacet.initialize(NFTMinter.address, MGROToken.address, TGNDAO.address);
+      await managementFacet.addBaseURI("ipfs://QmXzFFAoqVuNvmHhGjHf83fuPoNcYchgqnoApQ7TQrawdH/");
+      await managementFacet.addBaseURI("ipfs://QmbiW58L447GyaHnSgAtfPv5HwpxSd4N6fptGDrQFXMbPt/");
+      await managementFacet.addBaseURI("ipfs://QmV7hEVZqAbnHZcAfg8pVqXJNEdX9two2gisSQkfTNbEbS/");
 
       // Set the Management contract address in MGRADD and NFTADD
       await MGROToken.setManagementContract(diamondAddress);
       await NFTMinter.setManagementContract(diamondAddress);
+
+      
 
 
 

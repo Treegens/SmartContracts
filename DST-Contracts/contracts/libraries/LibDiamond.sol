@@ -50,6 +50,7 @@ library LibDiamond {
         mapping (address => uint) minted;
         mapping (address => uint) burnt;
         mapping(address => uint[])  userNFTs;
+   
         uint256 nftCount;
         uint256 count;
 
