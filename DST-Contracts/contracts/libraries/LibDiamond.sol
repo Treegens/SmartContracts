@@ -31,8 +31,6 @@ library LibDiamond {
     }
 
     struct DiamondStorage {
-
-     
         // maps function selector to the facet address and
         // the position of the selector in the facetFunctionSelectors.selectors array
         mapping(bytes4 => FacetAddressAndPosition) selectorToFacetAndPosition;
@@ -50,18 +48,10 @@ library LibDiamond {
         mapping (address => uint) minted;
         mapping (address => uint) burnt;
         mapping(address => uint[])  userNFTs;
-   
         uint256 nftCount;
         uint256 count;
-
-         IMGro  mgro;
-         IMinter  minter;
-
-   
-    
-    
-
-    
+        IMGro  mgro;
+        IMinter  minter; 
     }
 
     function diamondStorage() internal pure returns (DiamondStorage storage ds) {

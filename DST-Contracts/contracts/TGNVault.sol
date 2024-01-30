@@ -2,61 +2,113 @@
 pragma solidity 0.8.17;
 
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-import "@openzeppelin/contracts/access/Ownable.sol";
 
-contract TGNVault is Ownable {
-    IERC20 public tgnToken; // The TGN Token contract
-    uint256 public releaseDate; // The date when tokens can be claimed (15th January 2024)
+contract SimpleStaking {
+    address private daoContract;  // Address of the DAO contract
+    bool private slashingEnabled; 
 
-    struct Contributor {
-        uint256 allocatedTokens;
-        bool hasClaimed;
+    IERC20 private tgn;
+    uint8 private slashingPercentage;
+
+    mapping(address => uint256) public stakedBalance;
+    mapping(address => uint256) public lastStakedTime;
+
+    event Staked(address indexed staker, uint256 amount);
+    event Unstaked(address indexed staker, uint256 amount);
+    event Slashed(address indexed staker, uint256 amount);
+
+    modifier onlyDAO() {
+        require(msg.sender == daoContract, "Caller is not the DAO contract");
+        _;
     }
 
-    mapping(address => Contributor) public contributors;
-
-    event TokensAllocated(address indexed contributor, uint256 amount);
-    event TokensClaimed(address indexed contributor, uint256 amount);
-
-    constructor(address _tgnToken) {
-        tgnToken = IERC20(_tgnToken);
-        releaseDate = 1705490014; // Approximate timestamp for 15th January 2024
+    modifier slashingAllowed() {
+        require(slashingEnabled, "Slashing is currently disabled");
+        _;
     }
 
-    function allocateTokens(address[] calldata _contributors, uint256[] calldata _tokenAmounts) external onlyOwner {
-        require(_contributors.length == _tokenAmounts.length, "Arrays length mismatch");
-        for (uint256 i = 0; i < _contributors.length; i++) {
-            address contributor = _contributors[i];
-            uint256 tokenAmount = _tokenAmounts[i];
-            require(contributor != address(0), "Invalid contributor address");
-            require(!contributors[contributor].hasClaimed, "Tokens already claimed for this contributor");
-            contributors[contributor].allocatedTokens += tokenAmount;
-            emit TokensAllocated(contributor, tokenAmount);
-        }
+    constructor(address _tgn, address _DAO) {
+        require(_tgn != address(0), "Invalid token Address");
+        daoContract = _DAO;  // Set the DAO contract during deployment
+        slashingEnabled = true; 
+        tgn = IERC20(_tgn);
     }
 
-    function claimTokens() external {
-        require(block.timestamp >= releaseDate, "Tokens can't be claimed yet");
-        require(contributors[msg.sender].allocatedTokens > 0, "No tokens allocated to this address");
-        // require(!contributors[msg.sender].hasClaimed, "Tokens already claimed for this address");
+    function setSlashingParams (uint8 _percent) external  onlyDAO  {
+        require(_percent!=0, "Invalid Input");
+        slashingPercentage = _percent;
 
-        uint256 tokenAmount = contributors[msg.sender].allocatedTokens;
-        contributors[msg.sender].hasClaimed = true;
-        tgnToken.transfer(msg.sender, tokenAmount);
-
-        emit TokensClaimed(msg.sender, tokenAmount);
     }
 
-    // Owner can change the release date if necessary
-    function setReleaseDate(uint256 _newReleaseDate) external onlyOwner {
-        releaseDate = _newReleaseDate;
+    // Function to stake tokens
+    function stake(uint256 amount) external {
+        require(amount > 0, "Amount must be greater than 0");
+        require(tgn.allowance(msg.sender, address(this)) >= amount, "Please increase the allowance for this contract");
+        tgn.transferFrom(msg.sender, address(this), amount);
+
+        stakedBalance[msg.sender] += amount;
+        lastStakedTime[msg.sender] = block.timestamp;
+
+        emit Staked(msg.sender, amount);
     }
 
+    // Function to unstake tokens
+    function unstake(uint256 amount) external {
+        require(amount > 0, "Amount must be greater than 0");
+        require(stakedBalance[msg.sender] >= amount, "Not enough staked balance");
 
-    function checkAllocation(address _address) public view returns( uint){
-        return contributors[_address].allocatedTokens;
+        tgn.transfer(msg.sender, amount);
+
+        stakedBalance[msg.sender] -= amount;
+
+        emit Unstaked(msg.sender, amount);
     }
-    function checkClaimStatus(address _address) public view returns(bool){
-        return contributors[_address].hasClaimed;
+
+    // Function to slash a staker's balance (can only be called by the DAO)
+  function slash(address staker) external  onlyDAO  slashingAllowed {
+    uint256 amount = stakedBalance[staker];
+    require(amount > 0, "Cannot slash zero balance");
+    
+    require(slashingPercentage > 0, "Slashing percentage must be greater than 0");
+
+    uint256 slashAmount = (slashingPercentage * amount) / 100;
+    require(slashAmount <= amount, "Slash amount exceeds staked balance");
+
+    stakedBalance[staker] -= slashAmount;
+
+    emit Slashed(staker, slashAmount);
+}
+
+
+    // Function to enable/disable slashing (can only be called by the DAO)
+    function setSlashingEnabled(bool enabled) external  onlyDAO   {
+        slashingEnabled = enabled;
     }
+
+    // Function to get the current staking balance of an address
+    function getStakedBalance(address staker) external view returns (uint256) {
+        return stakedBalance[staker];
+    }
+
+    // Function to get the last staking time of an address
+    function getLastStakedTime(address staker) external view returns (uint256) {
+        return lastStakedTime[staker];
+    }
+
+    // Public getter for DAO contract address
+    function getDAOContract() external view returns (address) {
+        return daoContract;
+    }
+
+    // Public getter for slashing enabled flag
+    function isSlashingEnabled() external view returns (bool) {
+        return slashingEnabled;
+    }
+}
+
+interface ISimpleStaking{
+    function slash(address staker) external;
+    function getStakedBalance(address staker) external view returns (uint256); 
+    function setSlashingParams (uint8 _percent) external;
+
 }
