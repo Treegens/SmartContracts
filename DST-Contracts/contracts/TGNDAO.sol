@@ -6,6 +6,7 @@ import "@openzeppelin/contracts/governance/extensions/GovernorCountingSimple.sol
 import "@openzeppelin/contracts/governance/extensions/GovernorVotes.sol";
 import "@openzeppelin/contracts/governance/extensions/GovernorVotesQuorumFraction.sol";
 import "@openzeppelin/contracts/governance/extensions/GovernorSettings.sol";
+import "./TGNVault.sol";
 
 contract TGNDAO is
   Governor,
@@ -14,11 +15,16 @@ contract TGNDAO is
   GovernorVotes,
   GovernorVotesQuorumFraction
 {
+  address private MGROVerification;
+  ISimpleStaking private staking;
+  mapping (uint => bool) private requiresStaking;
   constructor(
     IVotes _token,
     uint256 _quorumPercentage,
     uint256 _votingPeriod,
-    uint256 _votingDelay
+    uint256 _votingDelay,
+    address _MGROContract, 
+    address _stakingContract
   )
     Governor("GovernorContract")
     GovernorSettings(
@@ -29,7 +35,10 @@ contract TGNDAO is
     GovernorVotes(_token)
     GovernorVotesQuorumFraction(_quorumPercentage)
 
-  {}
+  {
+    staking = ISimpleStaking(_stakingContract);
+    MGROVerification = _MGROContract;
+  }
 
   function votingDelay()
     public
@@ -84,7 +93,18 @@ contract TGNDAO is
     bytes[] memory calldatas,
     string memory description
   ) public override(Governor) returns (uint256) {
-    return super.propose(targets, values, calldatas, description);
+    
+    uint256 id =  super.propose(targets, values, calldatas, description);
+    
+    for(uint i; i<targets.length; i++ ){
+      if(targets[i] == MGROVerification){
+        requiresStaking[id] = true;
+      } else {
+        requiresStaking[id] = false;
+      }
+    
+    }
+    return id;
   }
 
   function proposalThreshold()
@@ -105,6 +125,21 @@ contract TGNDAO is
   ) internal override(Governor) {
     super._execute(proposalId, targets, values, calldatas, descriptionHash);
   }
+
+  function _castVote(uint256 proposalId,
+        address account,
+        uint8 support,
+        string memory reason,
+        bytes memory params)
+        internal virtual override(Governor) returns (uint256){
+          uint256 userBal = staking.getStakedBalance(account);
+          if(requiresStaking[proposalId]==true){
+            require(userBal > 0, "Voting on this proposal requires user to stake tokens");
+          }
+          return super._castVote(proposalId,account, support,reason, params);
+
+
+        }
 
   function _cancel(
     address[] memory targets,
