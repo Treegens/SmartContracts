@@ -50,7 +50,7 @@ library LibDiamond {
         mapping(address => uint[])  userNFTs;
         uint256 nftCount;
         uint256 count;
-        IMGro  mgro;
+        IMGro mgro;
         IMinter  minter; 
     }
 
