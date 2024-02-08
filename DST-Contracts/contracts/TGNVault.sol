@@ -123,5 +123,4 @@ interface ITGNVault{
     function getStakedBalance(address staker) external view returns (uint256); 
     function setSlashingParams (uint8 _percent) external;
     function setUnstakeLock(bool lock) external returns (bool);
-
 }
