@@ -6,7 +6,7 @@ import "@openzeppelin/contracts/governance/extensions/GovernorCountingSimple.sol
 import "@openzeppelin/contracts/governance/extensions/GovernorVotes.sol";
 import "@openzeppelin/contracts/governance/extensions/GovernorVotesQuorumFraction.sol";
 import "@openzeppelin/contracts/governance/extensions/GovernorSettings.sol";
-import "./TGNVault.sol";
+
 
 contract TGNDAO is
   Governor,
@@ -15,11 +15,7 @@ contract TGNDAO is
   GovernorVotes,
   GovernorVotesQuorumFraction
 {
-  address private MGROVerification;
-  ITGNVault private staking;
-  mapping (uint => bool) private requiresStaking;
-  mapping (uint => address []) private noVotes;
-  mapping (uint => address []) private yesVotes;
+
 
   error RequiresStaking();
 
@@ -42,8 +38,7 @@ contract TGNDAO is
     GovernorVotesQuorumFraction(_quorumPercentage)
 
   {
-    staking = ITGNVault(_stakingContract);
-    MGROVerification = _MGROContract;
+
   }
 
   function votingDelay()
@@ -100,18 +95,8 @@ contract TGNDAO is
     string memory description
   ) public override(Governor) returns (uint256) {
     
-    uint256 id =  super.propose(targets, values, calldatas, description);
-    
-    for(uint i; i<targets.length; i++ ){
-      if(targets[i] == MGROVerification){
-        requiresStaking[id] = true;
-        staking.setUnstakeLock(true);
-      } else {
-        requiresStaking[id] = false;
-      }
-    
-    }
-    return id;
+    return  super.propose(targets, values, calldatas, description);
+ 
   }
 
   function proposalThreshold()
@@ -131,8 +116,7 @@ contract TGNDAO is
     bytes32 descriptionHash
   ) internal override(Governor) {
     super._execute(proposalId, targets, values, calldatas, descriptionHash);
-    // //the slashStaked function called after voting
-    // slashStaked(proposalId);
+
   }
 
   function _castVote(uint256 proposalId,
@@ -141,19 +125,7 @@ contract TGNDAO is
         string memory reason,
         bytes memory params)
         internal virtual override(Governor) returns (uint256){
-          uint256 userBal = staking.getStakedBalance(account);
-          if(requiresStaking[proposalId]==true){
-          if(userBal == 0) revert RequiresStaking();
-          }
-           if(support == 0){
-            noVotes[proposalId].push(account);
-          }else if(support == 1){
-            yesVotes[proposalId].push(account);
-          }
           return super._castVote(proposalId,account, support,reason, params);
-
-         
-
 
         }
 
@@ -184,29 +156,12 @@ contract TGNDAO is
     return super.supportsInterface(interfaceId);
   }
 
-  function slashStaked(uint256 proposalId) external  {
-    ProposalState current = state(proposalId);
-    address[] memory accounts;
-    if (current ==ProposalState.Defeated){
-    accounts = getYesVotes(proposalId);
-    }else if(current == ProposalState.Succeeded) {
-    accounts = getNoVotes(proposalId);
-    }
-
-    for (uint i = 0; i < accounts.length; i++) {
-      staking.slash(accounts[i]);
-    }
-    staking.setUnstakeLock(false);
-    
-  }
+ 
 
 
-  function getNoVotes(uint256 proposalId) internal view returns (address[] memory) {
-    return noVotes[proposalId];
     
-  }
-  function getYesVotes(uint256 proposalId) internal view returns (address[] memory) {
-    return yesVotes[proposalId];
-    
-  }
+  
+
+
+ 
 }
