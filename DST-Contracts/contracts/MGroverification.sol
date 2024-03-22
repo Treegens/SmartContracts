@@ -13,7 +13,9 @@ contract MGROVerification {
         uint256 amount;
         uint256 yesVotes;
         uint256 noVotes;
+        uint256 endTime;
         bool executed;
+        bool isActive;
         mapping(address => bool) hasVoted;
         address [] yesVoters;
         address [] noVoters;
@@ -24,6 +26,7 @@ contract MGROVerification {
 
     // Counter for proposal IDs
     uint256 public proposalCounter;
+    uint256 public votingPeriod;
 
     // Address of the vault contract where members stake tokens
     ITGNVault private tgnVault;
@@ -47,17 +50,22 @@ contract MGROVerification {
     // Event emitted when a verification proposal is executed
     event VerificationProposalExecuted(uint256 proposalId, bool succeeded);
 
-    constructor(address _vaultContract, address _diamond) {
+    constructor(address _vaultContract, address _diamond, uint256 _votingPeriod) {
         tgnVault = ITGNVault(_vaultContract);
         mgmt = ManagementFacet(_diamond);
+        votingPeriod = _votingPeriod;
     }
 
     // Function to create a new verification proposal
-    function proposeVerification() external onlyStakedMember {
+    function proposeVerification(uint256 _amount) external onlyStakedMember {
         uint256 newProposalId = proposalCounter++;
         VerificationProposal storage newProposal = verificationProposals[newProposalId];
         newProposal.proposalId = newProposalId;
         newProposal.proposer = msg.sender;
+        newProposal.amount = _amount;
+        newProposal.endTime = block.timestamp + votingPeriod;
+
+        newProposal.isActive;
 
         emit VerificationProposalCreated(newProposalId, msg.sender);
     }
@@ -65,7 +73,9 @@ contract MGROVerification {
     // Function to cast a vote on a verification proposal
     function vote(uint256 _proposalId, bool _vote) external onlyStakedMember {
         VerificationProposal storage proposal = verificationProposals[_proposalId];
+        require(proposal.isActive == true, "Proposal is not Active");
         require(!proposal.executed, "Proposal has already been executed");
+        require(tgnVault.getStakedBalance(msg.sender)>0, "Staking required to vote for verification");
         require(!proposal.hasVoted[msg.sender], "Already voted");
 
         proposal.hasVoted[msg.sender] = true;
@@ -79,6 +89,7 @@ contract MGROVerification {
         }
 
         emit VoteCast(_proposalId, msg.sender, _vote);
+        _updateProposalStatus(_proposalId);
     }
 
     // Function to execute a verification proposal and slash tokens
@@ -98,8 +109,6 @@ contract MGROVerification {
             _tokenSlash(noVoters);
             
 
-            
-
         } else {
            address [] memory yesVoters = proposal.yesVoters;
            _tokenSlash(yesVoters);
@@ -116,5 +125,12 @@ contract MGROVerification {
         for(uint i = 0; i<length; i++){
             tgnVault.slash(voters[i]);
         }
+    }
+    function _updateProposalStatus(uint256 _proposalId) internal {
+        VerificationProposal storage proposal = verificationProposals[_proposalId];
+        if(proposal.endTime > block.timestamp){
+            proposal.isActive =false;
+        }
+
     }
 }
