@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: SEE LICENSE IN LICENSE
+// SPDX-License-Identifier: GPL
 pragma solidity 0.8.17;
 
 import { LibDiamond } from "../libraries/LibDiamond.sol";
