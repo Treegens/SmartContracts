@@ -4,8 +4,9 @@ pragma solidity 0.8.17;
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
 contract TGNVault {
-    address private daoContract;  // Address of the DAO contract
-    bool private slashingEnabled; 
+    address private daoContract;
+    address private mgroVerification; // Address of the DAO contract
+    bool private slashingEnabled;
 
     IERC20 private tgn;
     uint8 private slashingPercentage;
@@ -24,34 +25,39 @@ contract TGNVault {
     error ApproveOrIncreaseAllowance();
     error InvalidSlashingAmount();
     error ZeroPercentSlashing();
+    error Unauthorized();
 
     modifier onlyDAO() {
-        if(msg.sender != daoContract) revert OnlyDAOAuthorized();
+        if (msg.sender != daoContract) revert OnlyDAOAuthorized();
         _;
     }
 
     modifier slashingAllowed() {
-        if(!slashingEnabled) revert EnableSlashing();
+        if (!slashingEnabled) revert EnableSlashing();
+        _;
+    }
+    modifier onlyMGROVerification() {
+        if (msg.sender != mgroVerification) revert Unauthorized();
         _;
     }
 
     constructor(address _tgn, address _DAO) {
-        if(_tgn == address(0)) revert InvalidInput();
-        daoContract = _DAO;  // Set the DAO contract during deployment
-        slashingEnabled = true; 
+        if (_tgn == address(0)|| _DAO ==address(0)) revert InvalidInput();
+        daoContract = _DAO; // Set the DAO contract during deployment
+        slashingEnabled = true;
         tgn = IERC20(_tgn);
     }
 
-    function setSlashingParams (uint8 _percent) external  onlyDAO  {
-        if(_percent==0) revert InvalidInput();
+    function setSlashingParams(uint8 _percent) external onlyDAO {
+        //limit to a max of 30% slash
+        if (_percent == 0 || _percent > 30) revert InvalidInput();
         slashingPercentage = _percent;
-
     }
 
     // Function to stake tokens
     function stake(uint256 amount) external {
-        if(amount == 0) revert InvalidInput();
-        if(tgn.allowance(msg.sender, address(this)) < amount) revert ApproveOrIncreaseAllowance();
+        if (amount == 0) revert InvalidInput();
+        if (tgn.allowance(msg.sender, address(this)) < amount) revert ApproveOrIncreaseAllowance();
         tgn.transferFrom(msg.sender, address(this), amount);
 
         stakedBalance[msg.sender] += amount;
@@ -62,7 +68,7 @@ contract TGNVault {
 
     // Function to unstake tokens
     function unstake(uint256 amount) external {
-        if(amount == 0) revert InvalidInput();
+        if (amount == 0) revert InvalidInput();
         require(stakedBalance[msg.sender] >= amount, "Not enough staked balance");
         require(lockStaking == false, "Can't unstake till the voting has passed");
 
@@ -74,23 +80,22 @@ contract TGNVault {
     }
 
     // Function to slash a staker's balance (can only be called by the DAO)
-  function slash(address staker) external  onlyDAO  slashingAllowed {
-    uint256 amount = stakedBalance[staker];
-    if (amount== 0) revert InvalidSlashingAmount();
-    
-    if(slashingPercentage == 0) revert ZeroPercentSlashing();
+    function slash(address staker) external onlyMGROVerification slashingAllowed {
+        uint256 amount = stakedBalance[staker];
+        if (amount == 0) revert InvalidSlashingAmount();
 
-    uint256 slashAmount = (slashingPercentage * amount) / 100;
-    if(slashAmount > amount) revert InvalidSlashingAmount();
+        if (slashingPercentage == 0) revert ZeroPercentSlashing();
 
-    stakedBalance[staker] -= slashAmount;
+        uint256 slashAmount = (slashingPercentage * amount) / 100;
+        if (slashAmount > amount) revert InvalidSlashingAmount();
 
-    emit Slashed(staker, slashAmount);
-}
+        stakedBalance[staker] -= slashAmount;
 
+        emit Slashed(staker, slashAmount);
+    }
 
     // Function to enable/disable slashing (can only be called by the DAO)
-    function setSlashingEnabled(bool enabled) external  onlyDAO   {
+    function setSlashingEnabled(bool enabled) external onlyDAO {
         slashingEnabled = enabled;
     }
 
@@ -113,14 +118,18 @@ contract TGNVault {
     function isSlashingEnabled() external view returns (bool) {
         return slashingEnabled;
     }
-    function setUnstakeLock(bool lock) external {
+
+    function setUnstakeLock(bool lock) external onlyDAO {
         lockStaking = lock;
     }
 }
 
-interface ITGNVault{
+interface ITGNVault {
     function slash(address staker) external;
-    function getStakedBalance(address staker) external view returns (uint256); 
-    function setSlashingParams (uint8 _percent) external;
+
+    function getStakedBalance(address staker) external view returns (uint256);
+
+    function setSlashingParams(uint8 _percent) external;
+
     function setUnstakeLock(bool lock) external returns (bool);
 }

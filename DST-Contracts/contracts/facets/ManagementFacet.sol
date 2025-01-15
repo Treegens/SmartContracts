@@ -37,12 +37,12 @@ contract ManagementFacet {
     }
 
     // Function to check the number of NFTs owned by a user
-    function checkUserNFTs(address _user) public view returns (uint) {
+    function checkUserNFTs(address _user) external view returns (uint) {
         LibDiamond.DiamondStorage storage ds = LibDiamond.diamondStorage();
         return ds.userNFTs[_user].length;
     }
      // Function to check the number of base URIs
-    function checklength() public view returns (uint) {
+    function checklength() external view returns (uint) {
         LibDiamond.DiamondStorage storage ds = LibDiamond.diamondStorage();
         return ds.baseURIs.length;
     }
@@ -73,6 +73,7 @@ contract ManagementFacet {
 
     function mintNFTs() external {
         LibDiamond.DiamondStorage storage ds = LibDiamond.diamondStorage();
+        require(msg.sender == ds.dao, "Only the DAO can mint NFTs");
         uint256 nftId = ++ds.nftCount;
         string memory _uri = string(abi.encodePacked(ds.baseURIs[0],'1'));
         ds.minter.safeMint(msg.sender, nftId);
@@ -81,7 +82,7 @@ contract ManagementFacet {
     }
 
     // Function to update NFTs based on user statistics
-    function updateNFTs(address _address) public {
+    function updateNFTs(address _address) external {
         LibDiamond.DiamondStorage storage ds = LibDiamond.diamondStorage();
         uint[] memory tokens = ds.userNFTs[_address];
         (uint256 _minted, uint256 _burnt) = checkStats(_address);
@@ -105,7 +106,7 @@ contract ManagementFacet {
             _URI = string(abi.encodePacked(_baseURI,Strings.toString(1)));
            }
 
-            setURIs(tokens, _URI);
+            _setURIs(tokens, _URI);
 
         } else if (roundedX > roundedY) {
             _baseURI = ds.baseURIs[1];
@@ -117,7 +118,7 @@ contract ManagementFacet {
     }
 
 // Function to set URIs for multiple tokens
-    function setURIs(uint[] memory _tokenIds, string memory uri) internal {
+    function _setURIs(uint[] memory _tokenIds, string memory uri) internal {
            LibDiamond.DiamondStorage storage ds = LibDiamond.diamondStorage();
         uint256 len = _tokenIds.length;
         for (uint256 i = 0; i < len; i++) {
@@ -181,7 +182,7 @@ contract ManagementFacet {
 
     finalURI = string(abi.encodePacked(_base, props));
    // emit LogBaseURI(_baseURI); // Add an event LogBaseURI(string _baseURI) to your contract
-    setURIs(tokens, finalURI);
+    _setURIs(tokens, finalURI);
 
 }
 
@@ -220,7 +221,7 @@ contract ManagementFacet {
     //     }else if(x == y) {
     //          finalURI = string(abi.encodePacked(_baseURI,Strings.toString(imageID)));
     //     }
-    //     setURIs(tokens, finalURI);
+    //     _setURIs(tokens, finalURI);
     // }
 
     // // Function to determine the image ID based on a value

@@ -5,6 +5,7 @@ import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 
 contract MGRO is ERC20, Ownable {
+   error InvalidInput();
 
     address public management;
     constructor()ERC20("MGRO", "MGRO"){
@@ -23,6 +24,7 @@ contract MGRO is ERC20, Ownable {
     }
 
     function mintTokens(address _receiver, uint _tokens) external  onlyManagement{
+        if(_receiver == address(0)) revert InvalidInput();
         require(_tokens > 0, "Invalid Token Number");
         _mint(_receiver, _tokens);
 
