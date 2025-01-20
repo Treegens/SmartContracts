@@ -22,14 +22,14 @@ task('accounts', 'Prints the list of accounts', async () => {
  */
 module.exports = {
   solidity: '0.8.17',
-  networks: {
-    mumbai: {
-      url: "https://polygon-mumbai.g.alchemy.com/v2/EiEk6hXCVsVB1cy6VIPlNdVaH8qNkCiZ",
-      accounts: [process.env.PRIVATE_KEY],
+  // networks: {
+  //   mumbai: {
+  //     url: "https://polygon-mumbai.g.alchemy.com/v2/EiEk6hXCVsVB1cy6VIPlNdVaH8qNkCiZ",
+  //     accounts: [process.env.PRIVATE_KEY],
     
-    },
+  //   },
    
-},
+// },
 
   settings: {
     optimizer: {

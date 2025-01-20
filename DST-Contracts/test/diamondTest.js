@@ -26,7 +26,7 @@ describe('DiamondTest', async function () {
 
   before(async function () {
       // Get signers
-      [owner, user1] = await ethers.getSigners();
+      [owner, user1, ] = await ethers.getSigners();
       // Deploy the Diamond contract
       diamondAddress = await deployDiamond();
       // Get contract instances
@@ -35,25 +35,27 @@ describe('DiamondTest', async function () {
       ownershipFacet = await ethers.getContractAt('OwnershipFacet', diamondAddress);
       managementFacet = await ethers.getContractAt('ManagementFacet', diamondAddress);
 
+      console.log("We good till this point")
       // Deploy Minter and MGRO contracts
       Minter = await ethers.getContractFactory('TreegenNFT');
       MGRO = await ethers.getContractFactory('MGRO');
       MGRADD = await MGRO.deploy();
-      NFTADD = await Minter.deploy();
+      console.log("Good, " ,MGRADD.address)
+      NFTADD = await Minter.deploy("example://uri");
       
       // Get token addresses
       const tokenAddress = MGRADD.address;
       const NFTAddress = NFTADD.address;
 
       // Initialize Management Facet
-      await managementFacet.initialize(NFTAddress, tokenAddress);
+      await managementFacet.initialize(NFTAddress, tokenAddress, owner.address, MGRADD.address );
 
       // Set the Management contract address in MGRADD and NFTADD
       await MGRADD.setManagementContract(diamondAddress);
       await NFTADD.setManagementContract(diamondAddress);
 
       // Add base URIs
-      await managementFacet.addBaseURI("ipfs://QmW3h5dB7yKyacNDfo1XCjjWV5zFyeDZfeVYcpYbx1xuNP");
+      await managementFacet.addBaseURI("ipfs://QmW3h5dB7yKyacNDfo1XCjjWV5zFyeDZfeVYcpYbx1xuNP/");
       await managementFacet.addBaseURI("ipfs://Qmbza7VprgNZ8eWzjRFWBaZUj11tZ2kEHVA6VUZGnsGVtu/");
       await managementFacet.addBaseURI("ipfs://QmaHhmm9bwJSF95NDwqyFiCX3LPDi7g6vY2zNXxQuDqgXe/");
       
@@ -111,46 +113,46 @@ describe('DiamondTest', async function () {
   describe("ERC20 Token Minting and Burning", function () {
       before(async function () {
           // Mint some tokens and perform setup here
-          await managementFacet.mintTokens(owner.address, ethers.utils.parseEther('10'));
+          await managementFacet.mintTokens(owner.address, 10);
       })
 
       it("The ERC20 Contract should only allow minting if it is called by the management contract", async function () {
           expect(await MGRADD.balanceOf(owner.address)).to.equal(ethers.utils.parseEther('10'));
-          await expect(managementFacet.mintTokens(owner.address, ethers.utils.parseEther('10'))).to.not.be.reverted;
+          await expect(managementFacet.mintTokens(owner.address, 10)).to.not.be.reverted;
           await expect(MGRADD.mintTokens(owner.address, ethers.utils.parseEther('10'))).to.be.revertedWith("Unauthorized");
       });
 
       it("Once the Management Contract mints, the owner address balance should be increased, and the stats updated", async function () {
           expect(await MGRADD.balanceOf(owner.address)).to.equal(ethers.utils.parseEther('20'));
           const [minted, burnt] = await managementFacet.checkStats(owner.address);
-          expect(minted).to.be.equal(ethers.utils.parseEther('20'));
+          expect(minted).to.be.equal(20);
           expect(burnt).to.be.equal(0);
       });
 
       it('User Should be able to burn tokens from the management contract', async function () {
           await MGRADD.approve(owner.address, ethers.utils.parseEther('100'));
-
+            console.log("Current token balance: ",BigInt(await MGRADD.balanceOf(owner.address)))
           expect(await MGRADD.balanceOf(owner.address)).to.equal(ethers.utils.parseEther('20'));
 
-          await managementFacet.burnTokens(ethers.utils.parseEther('5'));
+          await managementFacet.burnTokens(5);
           expect(await MGRADD.balanceOf(owner.address)).to.equal(ethers.utils.parseEther('15'));
 
           const [minted, burnt] = await managementFacet.checkStats(owner.address);
-          expect(minted).to.be.equal(ethers.utils.parseEther('20'));
-          expect(burnt).to.be.equal(ethers.utils.parseEther('5'));
+          expect(minted).to.be.equal(20);
+          expect(burnt).to.be.equal(5);
       });
 
       it("Should not change the stats values if the tokens are transferred", async function () {
           await MGRADD.approve(owner.address, ethers.utils.parseEther('100'));
-          await managementFacet.burnTokens(ethers.utils.parseEther('5'));
+          await managementFacet.burnTokens(5);
           await MGRADD.transfer(user1.address, ethers.utils.parseEther('2'));
 
           expect(await MGRADD.balanceOf(owner.address)).to.equal(ethers.utils.parseEther('8'));
           expect(await MGRADD.balanceOf(user1.address)).to.equal(ethers.utils.parseEther('2'));
 
           const [minted, burnt] = await managementFacet.checkStats(owner.address);
-          expect(minted).to.be.equal(ethers.utils.parseEther('20'));
-          expect(burnt).to.be.equal(ethers.utils.parseEther('10'));
+          expect(minted).to.be.equal(20);
+          expect(burnt).to.be.equal(10);
 
           const [minted1, burnt1] = await managementFacet.checkStats(user1.address);
           expect(minted1).to.be.equal(0);
@@ -159,7 +161,8 @@ describe('DiamondTest', async function () {
 
       it("Users can burn tokens only through the management contract", async function () {
           await MGRADD.approve(owner.address, ethers.utils.parseEther('100'));
-          await expect(managementFacet.burnTokens(ethers.utils.parseEther('5'))).to.not.be.reverted;
+          console.log("Current token balance: ",BigInt(await MGRADD.balanceOf(owner.address)))
+          await expect(managementFacet.burnTokens(5)).to.not.be.reverted;
           await expect(MGRADD.burnTokens(owner.address, ethers.utils.parseEther('5'))).to.be.revertedWith("Unauthorized");
       });
   });
@@ -177,12 +180,13 @@ describe('DiamondTest', async function () {
   describe("NFT Minting and URI Updates", function () {
       before(async function () {
           // Mint some tokens and perform setup here
-          await managementFacet.mintNFTs();
+          await managementFacet.mintNFT();
       });
 
       it("Users should be able to mint NFTs, and tokenId added to array of owned tokens", async function () {
           expect(await NFTADD.balanceOf(owner.address)).to.be.equal(1);
           expect(await managementFacet.checkUserNFTs(owner.address)).to.be.equal(1);
+          console.log("User holds: ", (await managementFacet.checkStats(owner.address)))
       });
 
       it("Check for the Minted NFT to be set to the baseURI[0] on mint", async function () {
@@ -209,7 +213,7 @@ describe('DiamondTest', async function () {
       });
       
       it("Should update the URI if the minted is greater than burnt and minted is greater than 150", async function(){
-          await managementFacet.mintNFTs();
+          await managementFacet.mintNFT();
         // expect(await NFTADD.tokenURI(1)).to.equal("ipfs://QmW3h5dB7yKyacNDfo1XCjjWV5zFyeDZfeVYcpYbx1xuNP");
           await managementFacet.mintTokens(owner.address, ethers.utils.parseEther('50'));
           await managementFacet.burnTokens(ethers.utils.parseEther('25'));
@@ -225,7 +229,7 @@ describe('DiamondTest', async function () {
           await managementFacet.mintTokens(owner.address, ethers.utils.parseEther('100'));
           await managementFacet.mintTokens(user1.address, ethers.utils.parseEther('5'));
           await MGRADD.transfer(user1.address, ethers.utils.parseEther('20'));
-          await managementFacet.connect(user1).mintNFTs();
+          await managementFacet.connect(user1).mintNFT();
           await managementFacet.connect(user1).burnTokens(ethers.utils.parseEther('10'));
           await managementFacet.updateNFTs(user1.address);
 

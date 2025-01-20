@@ -41,11 +41,12 @@ contract TGNVault {
         _;
     }
 
-    constructor(address _tgn, address _DAO) {
-        if (_tgn == address(0)|| _DAO ==address(0)) revert InvalidInput();
+    constructor(address _tgn, address _DAO,address  _mgroVerification) {
+        if (_tgn == address(0)|| _DAO ==address(0) || _mgroVerification == address(0)) revert InvalidInput();
         daoContract = _DAO; // Set the DAO contract during deployment
         slashingEnabled = true;
         tgn = IERC20(_tgn);
+        mgroVerification = _mgroVerification;
     }
 
     function setSlashingParams(uint8 _percent) external onlyDAO {

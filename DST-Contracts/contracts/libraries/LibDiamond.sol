@@ -9,6 +9,7 @@ import { IDiamondCut } from "../interfaces/IDiamondCut.sol";
 
 import "../MGRO.sol";
 import "../NFTMinter.sol";
+import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
 
 
@@ -50,8 +51,11 @@ library LibDiamond {
         mapping(address => uint[])  userNFTs;
         uint256 nftCount;
         uint256 count;
+        uint nftPrice;
         IMGro mgro;
         IMinter  minter; 
+        IERC20 buyToken;
+        address feeCollector;
     }
 
     function diamondStorage() internal pure returns (DiamondStorage storage ds) {

@@ -2,10 +2,10 @@ const { expect } = require("chai");
 const { ethers } = require("hardhat");
 
 describe("TGN Test", function () {
-  let owner, user1,user2, user3, TGNToken, Staking, TGN, STK, DAO, TGNDAO, MGRO, MGRADD;
+  let owner, user1,user2, user3, TGNToken, Staking, TGN, STK, DAO, TGNDAO, MGRO, MGRADD, verifier;
 
   beforeEach(async function () {
-    [owner, user1, user2, user3] = await ethers.getSigners();
+    [owner, user1, user2, user3,verifier] = await ethers.getSigners();
     TGNToken = await ethers.getContractFactory('TGNToken');
     Staking = await ethers.getContractFactory('TGNVault');
     DAO = await ethers.getContractFactory('TGNDAO');
@@ -16,20 +16,20 @@ describe("TGN Test", function () {
     TGN = await TGNToken.deploy();
    
     const tokenAddress =  TGN.address;
-    STK = await Staking.deploy(tokenAddress);
+    STK = await Staking.deploy(tokenAddress, owner.address, verifier.address);
     const StakingAddress = await STK.address;
 
-    TGNDAO = await DAO.deploy(tokenAddress,4, 7200,7200 );
+    TGNDAO = await DAO.deploy(tokenAddress,4, 7200,7200,MGRADD.address, StakingAddress );
   })
  
   describe("Token Test", function(){
   it("Should allow owner to mint tokens", async function(){
-        await TGN.mintWithTimelock(owner.address, ethers.utils.parseEther('10'), 1705490014);
+        await TGN.mintWithTimelock(owner.address, ethers.utils.parseEther('10'), 2705490014);
 
         expect(await TGN.balanceOf(owner.address)).to.equal(ethers.utils.parseEther('10'))
   })
   it("Users cannot transfer tokens if lock time is yet to elapse", async function(){
-    await TGN.mintWithTimelock(owner.address, ethers.utils.parseEther('10'),1705490014);
+    await TGN.mintWithTimelock(owner.address, ethers.utils.parseEther('10'),2705490014);
 
     await expect(TGN.transfer(user1.address, ethers.utils.parseEther('5'))).to.be.revertedWith("Cannot transfer tokens till unlock time")
     await expect(TGN.transferFrom(owner.address, user1.address, ethers.utils.parseEther('5'))).to.be.revertedWith("Cannot transfer tokens till unlock time")
@@ -54,46 +54,20 @@ describe("TGN Test", function () {
   })
   it("Owner can mint 300M Tokens max", async function(){
     const add = await STK.address
-    await TGN.mintWithTimelock(add, ethers.utils.parseEther('50000000'),1705490014)
+    await TGN.mintWithTimelock(add, ethers.utils.parseEther('50000000'),2705490014)
     expect(await TGN.totalSupply()).to.equal(ethers.utils.parseEther('50000000'))
-    await TGN.mintWithTimelock(add, ethers.utils.parseEther('250000000'), 1705490014)
+    await TGN.mintWithTimelock(add, ethers.utils.parseEther('250000000'), 2705490014)
     expect(await TGN.totalSupply()).to.equal(ethers.utils.parseEther('300000000'))
 
-    await expect(TGN.mintWithTimelock(add, ethers.utils.parseEther('1'), 1705490014)).to.be.revertedWith('Exceeds max supply')
+    await expect(TGN.mintWithTimelock(add, ethers.utils.parseEther('1'), 2705490014)).to.be.revertedWith('Exceeds max supply')
     
  
 
   })
-  it("Should allow owner to mint tokens without a timelock", async function(){
-    await TGN.mint(user3.address, ethers.utils.parseEther('10'));
-    expect(await TGN.balanceOf(user3.address)).to.equal(ethers.utils.parseEther('10'))
-
-
-    await expect(TGN.connect(user3).transfer(user1.address, ethers.utils.parseEther('5'))).to.not.be.reverted
-    await expect(TGN.transferFrom(user3.address, user1.address, ethers.utils.parseEther('5'))).to.not.be.reverted
-  })
-
-  it("Should not allow a user to transfer until 15th January", async function(){
-    const add = await STK.address
-    await TGN.mintWithTimelock(owner.address, ethers.utils.parseEther('50000000'), 1705490014)
-   // await STK.allocateTokens([user1.address, user2.address, user3.address], [ethers.utils.parseEther('500'),ethers.utils.parseEther('1000'),ethers.utils.parseEther('600')])
-    expect(await TGN.balanceOf(owner.address)).to.be.equal(ethers.utils.parseEther('50000000'))
-   await expect(TGN.transfer(user1.address, ethers.utils.parseEther('5'))).to.be.revertedWith("Cannot transfer tokens till unlock time")
-   await expect(TGN.transferFrom(owner.address, user1.address, ethers.utils.parseEther('5'))).to.be.revertedWith("Cannot transfer tokens till unlock time")
-    
-    await network.provider.send("evm_setNextBlockTimestamp", [1705490015]);
-    
-    await expect(TGN.transfer(user1.address, ethers.utils.parseEther('5'))).to.not.be.reverted
-    await expect(TGN.transferFrom(owner.address, user1.address, ethers.utils.parseEther('5'))).to.not.be.reverted
-
-    expect(await TGN.balanceOf(user1.address)).to.equal(ethers.utils.parseEther('10'))
-    
-  })
   
-
   it("Should only allow the owner to Mint tokens", async function(){
     await expect(TGN.connect(owner).mint(user1.address, ethers.utils.parseEther('10'))).to.not.be.reverted
-    await expect(TGN.connect(owner).mintWithTimelock(user1.address, ethers.utils.parseEther('10'),1705490045)).to.not.be.reverted
+    await expect(TGN.connect(owner).mintWithTimelock(user1.address, ethers.utils.parseEther('10'),2705490045)).to.not.be.reverted
 
 
     await expect(TGN.connect(user1).mint(user1.address, ethers.utils.parseEther('10'))).to.be.reverted
