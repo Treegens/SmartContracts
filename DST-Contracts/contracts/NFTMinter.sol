@@ -38,6 +38,7 @@ contract TreegenNFT is ERC721, ERC721URIStorage, Ownable {
        
 
     }
+    
 
     function updateURI(uint tokenId, string memory uri) external {
         require(msg.sender == management, "Unauthorized");

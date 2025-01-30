@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: GPL
 pragma solidity 0.8.17;
 
-import { LibDiamond } from "../libraries/LibDiamond.sol";
+import {LibDiamond} from "../libraries/LibDiamond.sol";
 import "../MGRO.sol";
 import "../NFTMinter.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
@@ -16,41 +16,27 @@ contract ManagementFacet {
     event LogBaseURI(string baseURI);
     event LogValues(uint256 x, uint256 y); // for debugging percentages
 
-    /* ------------------------------------------------------------------------
-       MODIFIERS
-    --------------------------------------------------------------------------*/
-    modifier onlyOwner {
-        LibDiamond.DiamondStorage storage ds = LibDiamond.diamondStorage();
-        if (msg.sender != ds.contractOwner) revert();
-        _;
-    }
+
 
     /* ------------------------------------------------------------------------
        FUNCTIONS
     --------------------------------------------------------------------------*/
 
-    function initialize(
-        address _minter, 
-        address _token, 
-        address _dao, 
-        address _buyToken
-    ) 
-        external  
-    {
+    function initialize(address _minter, address _token, address _dao, address _buyToken) external {
+        LibDiamond.enforceIsContractOwner();
         LibDiamond.DiamondStorage storage ds = LibDiamond.diamondStorage();
         require(ds.count == 0, "Can only be run once");
-        require(
-            _minter != address(0) || 
-            _token  != address(0) || 
-            _dao    != address(0),
-            "Invalid Addresses"
-        );
+        require(_minter != address(0) , "Invalid minter Address");
+        require(_dao != address(0), "Invalid Purchasing token Address");
+        require(_token != address(0), "Invalid MGRO token Address");
+        require(_buyToken != address(0), "Invalid Purchasing token Address");
+        require(_buyToken != address(0), "Invalid Purchasing token Address");
 
-        ds.mgro      = IMGro(_token);
-        ds.minter    = IMinter(_minter);
-        ds.buyToken  = IERC20(_buyToken);
-        ds.dao       = _dao;
-        ds.nftCount  = 0;
+        ds.mgro = IMGro(_token);
+        ds.minter = IMinter(_minter);
+        ds.buyToken = IERC20(_buyToken);
+        ds.dao = _dao;
+        ds.nftCount = 0;
         ds.count++;
     }
 
@@ -61,15 +47,18 @@ contract ManagementFacet {
         ds.feeCollector = _address;
     }
 
-    function setPurchaseToken(address _token) external {
+    function setPurchaseToken(address _token, uint256 _price) external {
         require(_token != address(0), "Invalid Token");
+        require(_price != 0, "Set a valid Price");
         LibDiamond.DiamondStorage storage ds = LibDiamond.diamondStorage();
         require(msg.sender == ds.dao, "Purchase token can be changed only via DAO");
         ds.buyToken = IERC20(_token);
+        ds.nftPrice = _price;
     }
 
     // Function to add base URI
-    function addBaseURI(string memory _URI) external onlyOwner {
+    function addBaseURI(string memory _URI) external  {
+        LibDiamond.enforceIsContractOwner();
         LibDiamond.DiamondStorage storage ds = LibDiamond.diamondStorage();
         require(ds.baseURIs.length < 3, "Cannot have more than 3 URIs");
         ds.baseURIs.push(_URI);
@@ -99,19 +88,20 @@ contract ManagementFacet {
         LibDiamond.DiamondStorage storage ds = LibDiamond.diamondStorage();
         require(msg.sender == ds.dao, "Only the DAO can mint MGRO tokens");
 
-        uint256 token = _tokens * 10**18;
+        uint256 token = _tokens * 10 ** 18;
         ds.mgro.mintTokens(_receiver, token);
         ds.minted[_receiver] += _tokens;
     }
 
     function burnTokens(uint256 _tokens) external {
         LibDiamond.DiamondStorage storage ds = LibDiamond.diamondStorage();
-        uint256 token = _tokens * 10**18;
+        uint256 token = _tokens * 10 ** 18;
         ds.mgro.burnTokens(msg.sender, token);
         ds.burnt[msg.sender] += _tokens;
     }
 
-    function mintNFT() external onlyOwner {
+    function mintNFT() external  {
+        LibDiamond.enforceIsContractOwner();
         LibDiamond.DiamondStorage storage ds = LibDiamond.diamondStorage();
         uint256 nftId = ++ds.nftCount;
         string memory _uri = string(abi.encodePacked(ds.baseURIs[0], "1"));
@@ -138,6 +128,7 @@ contract ManagementFacet {
     // Function to update NFTs based on user statistics
     function updateNFTs(address _address) external {
         LibDiamond.DiamondStorage storage ds = LibDiamond.diamondStorage();
+        require(ds.baseURIs.length==3, "You need to have the baseURIs set");
         uint[] memory tokens = ds.userNFTs[_address];
         (uint256 _minted, uint256 _burnt) = checkStats(_address);
 
@@ -164,7 +155,7 @@ contract ManagementFacet {
             // If minted/burnt percentages match after rounding
             _baseURI = ds.baseURIs[0];
             string memory _URI;
-            if(_minted > 0) {
+            if (_minted > 0) {
                 _URI = string(abi.encodePacked(_baseURI, Strings.toString(2)));
             } else {
                 _URI = string(abi.encodePacked(_baseURI, Strings.toString(1)));
@@ -194,14 +185,7 @@ contract ManagementFacet {
     }
 
     // Decide which image to pick from the baseURI
-    function _setURI(
-        string memory _baseURI, 
-        uint256 x, 
-        uint256 y, 
-        uint[] memory tokens
-    ) 
-        internal 
-    {
+    function _setURI(string memory _baseURI, uint256 x, uint256 y, uint[] memory tokens) internal {
         LibDiamond.DiamondStorage storage ds = LibDiamond.diamondStorage();
 
         // First, log the x and y we received for debugging:
@@ -214,23 +198,19 @@ contract ManagementFacet {
         if (x == 100 && y == 0) {
             _base = _baseURI;
             imgNo = 1;
-        } 
-        else if (x == 90 && y == 10) {
+        } else if (x == 90 && y == 10) {
             _base = _baseURI;
             imgNo = 2;
-        } 
-        else if (x == 80 && y == 20) {
+        } else if (x == 80 && y == 20) {
             _base = _baseURI;
             imgNo = 3;
-        } 
-        else if (x == 70 && y == 30) {
+        } else if (x == 70 && y == 30) {
             _base = _baseURI;
             imgNo = 4;
-        } 
-        else if (x == 60 && y == 40) {
+        } else if (x == 60 && y == 40) {
             _base = _baseURI;
             imgNo = 5;
-        } 
+        }
         // 50/50 or any leftover rounding scenario
         else {
             _base = ds.baseURIs[0];

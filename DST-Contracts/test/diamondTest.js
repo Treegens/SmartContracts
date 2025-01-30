@@ -182,6 +182,9 @@ describe('DiamondTest', async function () {
           // Mint some tokens and perform setup here
           await managementFacet.mintNFT();
       });
+      it("Check for the Minted NFT to be set to the baseURI[0] on mint", async function () {
+        expect(await NFTADD.tokenURI(1)).to.equal("ipfs://QmW3h5dB7yKyacNDfo1XCjjWV5zFyeDZfeVYcpYbx1xuNP");
+    });
 
       it("Users should be able to mint NFTs, and tokenId added to array of owned tokens", async function () {
           expect(await NFTADD.balanceOf(owner.address)).to.be.equal(1);
@@ -189,9 +192,7 @@ describe('DiamondTest', async function () {
           console.log("User holds: ", (await managementFacet.checkStats(owner.address)))
       });
 
-      it("Check for the Minted NFT to be set to the baseURI[0] on mint", async function () {
-          expect(await NFTADD.tokenURI(1)).to.equal("ipfs://QmW3h5dB7yKyacNDfo1XCjjWV5zFyeDZfeVYcpYbx1xuNP");
-      });
+  
 
       it("Should update the URI if the minted is greater than burnt", async function () {
           expect(await NFTADD.tokenURI(1)).to.equal("ipfs://QmW3h5dB7yKyacNDfo1XCjjWV5zFyeDZfeVYcpYbx1xuNP");
