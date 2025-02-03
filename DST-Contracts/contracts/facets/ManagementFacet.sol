@@ -5,7 +5,6 @@ import {LibDiamond} from "../libraries/LibDiamond.sol";
 import "../MGRO.sol";
 import "../NFTMinter.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-// Make sure you have the Strings library imported if not already:
 import "@openzeppelin/contracts/utils/Strings.sol";
 
 contract ManagementFacet {
@@ -47,6 +46,7 @@ contract ManagementFacet {
         ds.feeCollector = _address;
     }
 
+
     function setPurchaseToken(address _token, uint256 _price) external {
         require(_token != address(0), "Invalid Token");
         require(_price != 0, "Set a valid Price");
@@ -54,6 +54,12 @@ contract ManagementFacet {
         require(msg.sender == ds.dao, "Purchase token can be changed only via DAO");
         ds.buyToken = IERC20(_token);
         ds.nftPrice = _price;
+    }
+     function setVerificationContract(address _address) external {
+        require(_address != address(0), "Invalid Address");
+        LibDiamond.enforceIsContractOwner();
+        LibDiamond.DiamondStorage storage ds = LibDiamond.diamondStorage();
+        ds.mgroVerification = _address;
     }
 
     // Function to add base URI
@@ -84,10 +90,9 @@ contract ManagementFacet {
         return (_minted, _burnt);
     }
 
-    function mintTokens(address _receiver, uint256 _tokens) external {
+    function mintMgroTokens(address _receiver, uint256 _tokens) external {
         LibDiamond.DiamondStorage storage ds = LibDiamond.diamondStorage();
-        require(msg.sender == ds.dao, "Only the DAO can mint MGRO tokens");
-
+        require(msg.sender == ds.mgroVerification, "Only the Verification Contract can mint MGRO tokens");
         uint256 token = _tokens * 10 ** 18;
         ds.mgro.mintTokens(_receiver, token);
         ds.minted[_receiver] += _tokens;

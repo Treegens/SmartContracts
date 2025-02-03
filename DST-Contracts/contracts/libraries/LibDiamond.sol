@@ -44,6 +44,7 @@ library LibDiamond {
         mapping(bytes4 => bool) supportedInterfaces;
         // owner of the contract
         address contractOwner;
+        address mgroVerification;
         address  dao;
         string [] baseURIs;
         mapping (address => uint) minted;

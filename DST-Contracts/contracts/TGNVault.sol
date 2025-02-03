@@ -31,6 +31,7 @@ contract TGNVault {
         if (msg.sender != daoContract) revert OnlyDAOAuthorized();
         _;
     }
+    
 
     modifier slashingAllowed() {
         if (!slashingEnabled) revert EnableSlashing();

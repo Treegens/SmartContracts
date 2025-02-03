@@ -4,13 +4,15 @@ pragma solidity 0.8.17;
 import "./TGNVault.sol";
 import "./facets/ManagementFacet.sol";
 import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
+import "@openzeppelin/contracts/access/Ownable.sol";
 
-contract MGROVerification is ReentrancyGuard {
+contract MGROVerification is ReentrancyGuard, Ownable {
     event VerificationProposalCreated(uint256 indexed proposalId, address indexed proposer);
     event VoteCast(uint256 indexed proposalId, address indexed voter, bool vote);
     event VerificationProposalExecuted(uint256 indexed proposalId, bool succeeded);
 
     error InvalidInput();
+    error Unauthorized();
     // Struct to represent a verification proposal
     struct VerificationProposal {
         address proposer;
@@ -28,10 +30,15 @@ contract MGROVerification is ReentrancyGuard {
 
     // Mapping to store all verification proposals
     mapping(uint256 => VerificationProposal) public verificationProposals;
+    mapping(address => uint256) public slashedTimes;
+
 
     // Counter for proposal IDs
     uint256 public proposalCounter;
     uint256 public votingPeriod;
+    address private daoAddress;
+
+
 
     // Address of the vault contract where members stake tokens
     ITGNVault private tgnVault;
@@ -71,6 +78,7 @@ contract MGROVerification is ReentrancyGuard {
         require(block.timestamp <= proposal.endTime, "Voting period has ended");
         require(proposal.isActive == true, "Proposal is not Active");
         require(!proposal.executed, "Proposal has already been executed");
+        require(slashedTimes[msg.sender]<2, "User Blacklisted: Too many wrong verifications");
         require(!proposal.hasVoted[msg.sender], "Already voted");
         _updateProposalStatus(_proposalId);
         proposal.hasVoted[msg.sender] = true;
@@ -102,7 +110,7 @@ contract MGROVerification is ReentrancyGuard {
             address recepient = proposal.proposer;
             uint256 amount = proposal.amount;
 
-            mgmt.mintTokens(recepient, amount);
+            mgmt.mintMgroTokens(recepient, amount);
             address[] memory noVoters = proposal.noVoters;
             _tokenSlash(noVoters);
         } else {
@@ -119,11 +127,22 @@ contract MGROVerification is ReentrancyGuard {
         return verificationProposals[proposalId].hasVoted[voter];
     }
 
+    function resetBlacklist(address _address) external {
+        if(msg.sender!=daoAddress) revert Unauthorized();
+        if(_address==address(0)) revert InvalidInput();
+        slashedTimes[_address]=0;
+    }
+     function setDAOAddress(address _address) external onlyOwner{
+        if(_address==address(0)) revert InvalidInput();
+        daoAddress=_address;
+    }
+
     function _tokenSlash(address[] memory voters) internal {
         uint256 length = voters.length;
 
         for (uint i = 0; i < length; i++) {
             tgnVault.slash(voters[i]);
+            slashedTimes[voters[i]]+=1;
         }
     }
 
