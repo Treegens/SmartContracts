@@ -31,19 +31,23 @@ contract MGROVerification is ReentrancyGuard, Ownable {
     // Mapping to store all verification proposals
     mapping(uint256 => VerificationProposal) public verificationProposals;
     mapping(address => uint256) public slashedTimes;
-
+    mapping(address => uint8) public maxOpenVotes;
+    uint8 public constant MAX_PARALLEL_VOTES = 3;
 
     // Counter for proposal IDs
     uint256 public proposalCounter;
     uint256 public votingPeriod;
     address private daoAddress;
 
-
-
     // Address of the vault contract where members stake tokens
     ITGNVault private tgnVault;
 
     ManagementFacet private mgmt;
+
+    modifier votingQuota() {
+        require(maxOpenVotes[msg.sender] < MAX_PARALLEL_VOTES, "Too many open Votes");
+        _;
+    }
 
     // Modifier to check if the sender is a member with staked tokens
     modifier onlyStakedMember() {
@@ -52,7 +56,7 @@ contract MGROVerification is ReentrancyGuard, Ownable {
     }
 
     constructor(address _vaultContract, address _diamond, uint256 _votingPeriod) {
-        if(_vaultContract == address(0) ||_diamond == address(0) || _votingPeriod == 0) revert InvalidInput();
+        if (_vaultContract == address(0) || _diamond == address(0) || _votingPeriod == 0) revert InvalidInput();
         tgnVault = ITGNVault(_vaultContract);
         mgmt = ManagementFacet(_diamond);
         votingPeriod = _votingPeriod;
@@ -60,6 +64,7 @@ contract MGROVerification is ReentrancyGuard, Ownable {
 
     // Function to create a new verification proposal
     function proposeVerification(uint256 _amount) external onlyStakedMember {
+        require(_amount > 0, "Zero amount");
         uint256 newProposalId = ++proposalCounter;
         VerificationProposal storage newProposal = verificationProposals[newProposalId];
         newProposal.proposalId = newProposalId;
@@ -73,13 +78,16 @@ contract MGROVerification is ReentrancyGuard, Ownable {
     }
 
     // Function to cast a vote on a verification proposal
-    function vote(uint256 _proposalId, bool _vote) external onlyStakedMember nonReentrant {
+    function vote(uint256 _proposalId, bool _vote) external onlyStakedMember votingQuota nonReentrant {
         VerificationProposal storage proposal = verificationProposals[_proposalId];
         require(block.timestamp <= proposal.endTime, "Voting period has ended");
         require(proposal.isActive == true, "Proposal is not Active");
         require(!proposal.executed, "Proposal has already been executed");
-        require(slashedTimes[msg.sender]<2, "User Blacklisted: Too many wrong verifications");
+        require(slashedTimes[msg.sender] < 2, "User Blacklisted: Too many wrong verifications");
         require(!proposal.hasVoted[msg.sender], "Already voted");
+        if (maxOpenVotes[msg.sender] == 0) {
+            tgnVault.lockStake(msg.sender);
+        }
         _updateProposalStatus(_proposalId);
         proposal.hasVoted[msg.sender] = true;
         if (_vote) {
@@ -89,7 +97,7 @@ contract MGROVerification is ReentrancyGuard, Ownable {
             proposal.noVotes++;
             proposal.noVoters.push(msg.sender);
         }
-
+        maxOpenVotes[msg.sender] += uint8(1);
         emit VoteCast(_proposalId, msg.sender, _vote);
     }
 
@@ -117,7 +125,7 @@ contract MGROVerification is ReentrancyGuard, Ownable {
             address[] memory yesVoters = proposal.yesVoters;
             _tokenSlash(yesVoters);
         }
-
+        _clearOpenVoteCounters(proposal);
         proposal.executed = true;
 
         emit VerificationProposalExecuted(_proposalId, proposalSucceeded);
@@ -128,13 +136,14 @@ contract MGROVerification is ReentrancyGuard, Ownable {
     }
 
     function resetBlacklist(address _address) external {
-        if(msg.sender!=daoAddress) revert Unauthorized();
-        if(_address==address(0)) revert InvalidInput();
-        slashedTimes[_address]=0;
+        if (msg.sender != daoAddress) revert Unauthorized();
+        if (_address == address(0)) revert InvalidInput();
+        slashedTimes[_address] = 0;
     }
-     function setDAOAddress(address _address) external onlyOwner{
-        if(_address==address(0)) revert InvalidInput();
-        daoAddress=_address;
+
+    function setDAOAddress(address _address) external onlyOwner {
+        if (_address == address(0)) revert InvalidInput();
+        daoAddress = _address;
     }
 
     function _tokenSlash(address[] memory voters) internal {
@@ -142,7 +151,7 @@ contract MGROVerification is ReentrancyGuard, Ownable {
 
         for (uint i = 0; i < length; i++) {
             tgnVault.slash(voters[i]);
-            slashedTimes[voters[i]]+=1;
+            slashedTimes[voters[i]] += 1;
         }
     }
 
@@ -150,6 +159,23 @@ contract MGROVerification is ReentrancyGuard, Ownable {
         VerificationProposal storage proposal = verificationProposals[_proposalId];
         if (block.timestamp > proposal.endTime) {
             proposal.isActive = false;
+        }
+    }
+
+    function _clearOpenVoteCounters(VerificationProposal storage p) internal {
+        for (uint i; i < p.yesVoters.length; ++i) {
+            uint8 cnt = maxOpenVotes[p.yesVoters[i]];
+            if (cnt > 0) maxOpenVotes[p.yesVoters[i]] = cnt - uint8(1);
+            if (maxOpenVotes[p.yesVoters[i]] == 0) {
+                tgnVault.unlockStake(p.yesVoters[i]);
+            }
+        }
+        for (uint i; i < p.noVoters.length; ++i) {
+            uint8 cnt = maxOpenVotes[p.noVoters[i]];
+            if (cnt > 0) maxOpenVotes[p.noVoters[i]] = cnt - uint8(1);
+            if (maxOpenVotes[p.noVoters[i]] == 0) {
+                tgnVault.unlockStake(p.noVoters[i]);
+            }
         }
     }
 }

@@ -13,7 +13,7 @@ contract TGNVault {
 
     mapping(address => uint256) public stakedBalance;
     mapping(address => uint256) public lastStakedTime;
-    bool private lockStaking;
+    mapping(address => bool) public stakeLocked;
 
     event Staked(address indexed staker, uint256 amount);
     event Unstaked(address indexed staker, uint256 amount);
@@ -31,7 +31,6 @@ contract TGNVault {
         if (msg.sender != daoContract) revert OnlyDAOAuthorized();
         _;
     }
-    
 
     modifier slashingAllowed() {
         if (!slashingEnabled) revert EnableSlashing();
@@ -43,16 +42,15 @@ contract TGNVault {
     }
 
     constructor(address _tgn, address _DAO) {
-        if (_tgn == address(0)|| _DAO ==address(0) ) revert InvalidInput();
+        if (_tgn == address(0) || _DAO == address(0)) revert InvalidInput();
         daoContract = _DAO; // Set the DAO contract during deployment
         slashingEnabled = true;
         tgn = IERC20(_tgn);
-       
     }
 
     function setVerificationAddress(address _address) external onlyDAO {
-        if(_address == address(0)) revert InvalidInput();
-         mgroVerification = _address;
+        if (_address == address(0)) revert InvalidInput();
+        mgroVerification = _address;
     }
 
     function setSlashingParams(uint8 _percent) external onlyDAO {
@@ -77,7 +75,7 @@ contract TGNVault {
     function unstake(uint256 amount) external {
         if (amount == 0) revert InvalidInput();
         require(stakedBalance[msg.sender] >= amount, "Not enough staked balance");
-        require(lockStaking == false, "Can't unstake till the voting has passed");
+       require(!stakeLocked[msg.sender], "Active votes: unstake disabled");
 
         tgn.transfer(msg.sender, amount);
 
@@ -99,6 +97,15 @@ contract TGNVault {
         stakedBalance[staker] -= slashAmount;
 
         emit Slashed(staker, slashAmount);
+    }
+
+    // —— NEW functions, only callable by MGROVerification ——
+    function lockStake(address staker) external onlyMGROVerification {
+        stakeLocked[staker] = true;
+    }
+
+    function unlockStake(address staker) external onlyMGROVerification {
+        stakeLocked[staker] = false;
     }
 
     // Function to enable/disable slashing (can only be called by the DAO)
@@ -126,17 +133,11 @@ contract TGNVault {
         return slashingEnabled;
     }
 
-    function setUnstakeLock(bool lock) external onlyDAO {
-        lockStaking = lock;
-    }
 }
 
 interface ITGNVault {
-    function slash(address staker) external;
-
-    function getStakedBalance(address staker) external view returns (uint256);
-
-    function setSlashingParams(uint8 _percent) external;
-
-    function setUnstakeLock(bool lock) external returns (bool);
+    function slash(address) external;
+    function getStakedBalance(address) external view returns (uint256);
+    function lockStake(address) external;
+    function unlockStake(address) external;
 }
