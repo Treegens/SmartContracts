@@ -44,7 +44,7 @@ contract TGNVault {
     constructor(address _tgn, address _DAO) {
         if (_tgn == address(0) || _DAO == address(0)) revert InvalidInput();
         daoContract = _DAO; // Set the DAO contract during deployment
-        slashingEnabled = true;
+        slashingEnabled = false;
         tgn = IERC20(_tgn);
     }
 
@@ -57,14 +57,15 @@ contract TGNVault {
         //limit to a max of 30% slash
         if (_percent == 0 || _percent > 30) revert InvalidInput();
         slashingPercentage = _percent;
+        slashingEnabled = true;
     }
 
     // Function to stake tokens
     function stake(uint256 amount) external {
         if (amount == 0) revert InvalidInput();
         if (tgn.allowance(msg.sender, address(this)) < amount) revert ApproveOrIncreaseAllowance();
-        tgn.transferFrom(msg.sender, address(this), amount);
-
+        bool success = tgn.transferFrom(msg.sender, address(this), amount);
+        require(success, " TGN Transfer failed");
         stakedBalance[msg.sender] += amount;
         lastStakedTime[msg.sender] = block.timestamp;
 
@@ -77,7 +78,8 @@ contract TGNVault {
         require(stakedBalance[msg.sender] >= amount, "Not enough staked balance");
        require(!stakeLocked[msg.sender], "Active votes: unstake disabled");
 
-        tgn.transfer(msg.sender, amount);
+        bool success = tgn.transfer(msg.sender, amount);
+        require(success, " TGN Transfer failed");
 
         stakedBalance[msg.sender] -= amount;
 

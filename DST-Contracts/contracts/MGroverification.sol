@@ -108,6 +108,7 @@ contract MGROVerification is ReentrancyGuard, Ownable {
         if (block.timestamp > proposal.endTime && proposal.isActive) {
             proposal.isActive = false;
         }
+        
         require(!proposal.executed, "Proposal has already been executed");
         require(!proposal.isActive, "Proposal still active");
 

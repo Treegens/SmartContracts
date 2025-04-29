@@ -13,7 +13,7 @@ contract ManagementFacet {
     --------------------------------------------------------------------------*/
     event LogImgNo(uint256 imgNo);
     event LogBaseURI(string baseURI);
-    event LogValues(uint256 x, uint256 y); // for debugging percentages
+    event LogValues(uint256 x, uint256 y);
 
 
 
@@ -28,7 +28,6 @@ contract ManagementFacet {
         require(_minter != address(0) , "Invalid minter Address");
         require(_dao != address(0), "Invalid Purchasing token Address");
         require(_token != address(0), "Invalid MGRO token Address");
-        require(_buyToken != address(0), "Invalid Purchasing token Address");
         require(_buyToken != address(0), "Invalid Purchasing token Address");
 
         ds.mgro = IMGro(_token);
@@ -108,11 +107,12 @@ contract ManagementFacet {
     function mintNFT() external  {
         LibDiamond.enforceIsContractOwner();
         LibDiamond.DiamondStorage storage ds = LibDiamond.diamondStorage();
+        require(ds.baseURIs.length >0, "No URIs active");
         uint256 nftId = ++ds.nftCount;
         string memory _uri = string(abi.encodePacked(ds.baseURIs[0], "1"));
+        ds.userNFTs[msg.sender].push(nftId);
         ds.minter.safeMint(msg.sender, nftId);
         ds.minter.updateURI(nftId, _uri);
-        ds.userNFTs[msg.sender].push(nftId);
     }
 
     function mintNFTasUser() external {
@@ -121,13 +121,14 @@ contract ManagementFacet {
         require(ds.buyToken.balanceOf(msg.sender) > price, "Insufficient Balance");
         require(ds.buyToken.allowance(msg.sender, address(this)) >= price, "Insufficient Allowance");
 
-        ds.buyToken.transferFrom(msg.sender, ds.feeCollector, price);
-
+        bool success = ds.buyToken.transferFrom(msg.sender, ds.feeCollector, price);
+        require(success, " Token Transfer failed");
         uint256 nftId = ++ds.nftCount;
         string memory _uri = string(abi.encodePacked(ds.baseURIs[0], "1"));
+      
+        ds.userNFTs[msg.sender].push(nftId);
         ds.minter.safeMint(msg.sender, nftId);
         ds.minter.updateURI(nftId, _uri);
-        ds.userNFTs[msg.sender].push(nftId);
     }
 
     // Function to update NFTs based on user statistics
