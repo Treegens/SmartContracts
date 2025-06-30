@@ -6,7 +6,7 @@ const ownerAbi = require('../artifacts/contracts/facets/OwnershipFacet.sol/Owner
 const provider = new ethers.providers.JsonRpcProvider('https://eth-sepolia.g.alchemy.com/v2/AvrIkafWEUKzbxPxkPQJh55e99WFgqO-');
 
 // Replace these private keys with your devnet accounts
-const senderPrivateKey = 'dc3f8714779b130ee23e1e74a6a2f6863e07a3b90c91ab8e855f48a8e17facc1';
+const senderPrivateKey = '';
 
 
 const wallet = new ethers.Wallet(senderPrivateKey, provider);
