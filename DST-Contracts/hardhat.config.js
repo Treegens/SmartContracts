@@ -27,6 +27,10 @@ module.exports = {
       url: 'https://eth-sepolia.g.alchemy.com/v2/AvrIkafWEUKzbxPxkPQJh55e99WFgqO-',
       accounts: [process.env.PRIVATE_KEY],
     },
+    base: {
+      url: "https://base-mainnet.g.alchemy.com/v2/DveHxSKr36JndCFNqcd61YrVMev0BTpU",
+      accounts: [process.env.PRIVATE_KEY],
+    }
 
     
     },

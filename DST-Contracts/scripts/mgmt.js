@@ -9,16 +9,16 @@ const { ethers } = require("ethers");
 const DIAMOND_ADDRESS = "0x0056b2725c6493E94A9835397d4Fe04aFD8F684E";
 
 // The address of the ERC20 token used to buy the NFT
-const BUY_TOKEN_ADDRESS = "0xYourBuyTokenAddressHere";
+const BUY_TOKEN_ADDRESS = "0xA270Fd444d75b1f6B7B4bc8dcb0632633E9255cc";
 
 // The ABI for the ManagementFacet (the relevant part at least, specifically `mintNFTasUser()`).
 // Ideally you'd import the complete ABI JSON for your ManagementFacet or your Diamond.
-const MANAGEMENT_FACET_ABI = [
-  // Only what's needed to call `mintNFTasUser()`:
-  "function mintNFT() external",
-  "function setPurchaseToken(address _token, uint256 _price) external",
-  'function setFeeCollector(address _address) external'
-];
+// const MANAGEMENT_FACET_ABI = [
+//   // Only what's needed to call `mintNFTasUser()`:
+//   "function mintNFT() external",
+//   "function setPurchaseToken(address _token, uint256 _price) external",
+//   'function setFeeCollector(address _address) external'
+// ];
 
 // Standard minimal ERC20 ABI (approve, allowance, balanceOf, etc.):
 const ERC20_ABI = [
@@ -38,11 +38,11 @@ const signer = new ethers.Wallet(process.env.PRIVATE_KEY, provider);
 // ----------------------------------------------------------------
 
 // Create contract instance for ManagementFacet
-const managementFacetContract = new ethers.Contract(
-  DIAMOND_ADDRESS,
-  MANAGEMENT_FACET_ABI,
-  signer
-);
+// const managementFacetContract = new ethers.Contract(
+//   DIAMOND_ADDRESS,
+//   MANAGEMENT_FACET_ABI,
+//   signer
+// );
 
 // // Create contract instance for Buy Token (ERC20)
 // const buyTokenContract = new ethers.Contract(
@@ -74,14 +74,14 @@ const managementFacetContract = new ethers.Contract(
    
 
     // --- 3.3. Mint NFT as user
-    console.log("Calling mintNFTasUser() ...");
-    //await managementFacetContract.setFeeCollector('0x34d235fC47593EA72A493804FEd11C1499A7826C')
-    const txMint = await managementFacetContract.mintNFT();
-    const receiptMint = await txMint.wait();
-    console.log("mintNFTasUser() Transaction hash:", txMint.hash);
-    console.log("NFT successfully minted. Receipt:", receiptMint);
+  //   console.log("Calling mintNFTasUser() ...");
+  //   //await managementFacetContract.setFeeCollector('0x34d235fC47593EA72A493804FEd11C1499A7826C')
+  //   const txMint = await managementFacetContract.mintNFT();
+  //   const receiptMint = await txMint.wait();
+  //   console.log("mintNFTasUser() Transaction hash:", txMint.hash);
+  //   console.log("NFT successfully minted. Receipt:", receiptMint);
 
-  } catch (err) {
-    console.error("Error while minting NFT:", err);
-  }
+  // } catch (err) {
+  //   console.error("Error while minting NFT:", err);
+  // }
 })();

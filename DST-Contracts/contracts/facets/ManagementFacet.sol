@@ -14,7 +14,7 @@ contract ManagementFacet {
     event LogImgNo(uint256 imgNo);
     event LogBaseURI(string baseURI);
     event LogValues(uint256 x, uint256 y);
-
+    event NFTPurchased(address, uint, uint);
 
 
     /* ------------------------------------------------------------------------
@@ -26,7 +26,7 @@ contract ManagementFacet {
         LibDiamond.DiamondStorage storage ds = LibDiamond.diamondStorage();
         require(ds.count == 0, "Can only be run once");
         require(_minter != address(0) , "Invalid minter Address");
-        require(_dao != address(0), "Invalid Purchasing token Address");
+        require(_dao != address(0), "Invalid DAO Address");
         require(_token != address(0), "Invalid MGRO token Address");
         require(_buyToken != address(0), "Invalid Purchasing token Address");
 
@@ -104,76 +104,50 @@ contract ManagementFacet {
         ds.burnt[msg.sender] += _tokens;
     }
 
-    function mintNFT() external  {
+    function mintNFT(address _address) external  {
         LibDiamond.enforceIsContractOwner();
         LibDiamond.DiamondStorage storage ds = LibDiamond.diamondStorage();
         require(ds.baseURIs.length >0, "No URIs active");
         uint256 nftId = ++ds.nftCount;
         string memory _uri = string(abi.encodePacked(ds.baseURIs[0], "1"));
-        ds.userNFTs[msg.sender].push(nftId);
-        ds.minter.safeMint(msg.sender, nftId);
+        ds.userNFTs[_address].push(nftId);
+        ds.minter.safeMint(_address, nftId);
         ds.minter.updateURI(nftId, _uri);
     }
 
-    function mintNFTasUser() external {
-        LibDiamond.DiamondStorage storage ds = LibDiamond.diamondStorage();
-        uint price = ds.nftPrice;
-        require(ds.buyToken.balanceOf(msg.sender) > price, "Insufficient Balance");
-        require(ds.buyToken.allowance(msg.sender, address(this)) >= price, "Insufficient Allowance");
+function mintNFTasUser() external {
+    LibDiamond.DiamondStorage storage ds = LibDiamond.diamondStorage();
 
-        bool success = ds.buyToken.transferFrom(msg.sender, ds.feeCollector, price);
-        require(success, " Token Transfer failed");
-        uint256 nftId = ++ds.nftCount;
-        string memory _uri = string(abi.encodePacked(ds.baseURIs[0], "1"));
-      
-        ds.userNFTs[msg.sender].push(nftId);
-        ds.minter.safeMint(msg.sender, nftId);
-        ds.minter.updateURI(nftId, _uri);
-    }
+    uint256 price = ds.nftPrice;
+    if (price == 0) revert("Not yet active");
+    require(ds.baseURIs.length > 0, "No baseURI");
+    require(ds.feeCollector != address(0), "Fee collector not set");
+
+    require(ds.buyToken.balanceOf(msg.sender) >= price, "Insufficient balance");
+    require(ds.buyToken.allowance(msg.sender, address(this)) >= price, "Insufficient allowance");
+
+    // --- effects ---
+    uint256 nftId = ++ds.nftCount;
+    ds.userNFTs[msg.sender].push(nftId);
+
+    // --- interactions ---
+    bool ok = ds.buyToken.transferFrom(msg.sender, ds.feeCollector, price);
+    require(ok, "Token transfer failed");
+
+    string memory uri = string(abi.encodePacked(ds.baseURIs[0], "1"));
+    ds.minter.safeMint(msg.sender, nftId);
+    ds.minter.updateURI(nftId, uri);
+
+    emit NFTPurchased(msg.sender, nftId, price);
+}
+
 
     // Function to update NFTs based on user statistics
-    function updateNFTs(address _address) external {
+    function updateNFTs(address _address, string memory uri) external  {
         LibDiamond.DiamondStorage storage ds = LibDiamond.diamondStorage();
-        require(ds.baseURIs.length==3, "You need to have the baseURIs set");
+         LibDiamond.enforceIsContractOwner();
         uint[] memory tokens = ds.userNFTs[_address];
-        (uint256 _minted, uint256 _burnt) = checkStats(_address);
-
-        // Avoid division by zero if minted+burnt == 0
-        uint256 total = _minted + _burnt;
-        if (total == 0) {
-            // If user has no minted or burnt history, simply skip or default to baseURIs[0]
-            return;
-        }
-
-        uint256 percentageX = (_minted * 100) / total;
-        uint256 percentageY = (_burnt * 100) / total;
-
-        // Round percentages to the nearest 10%
-        uint256 roundedX = roundToNearestTen(percentageX);
-        uint256 roundedY = roundToNearestTen(percentageY);
-
-        // Log the final (rounded) percentages
-        emit LogValues(roundedX, roundedY);
-
-        string storage _baseURI;
-
-        if (roundedX == roundedY) {
-            // If minted/burnt percentages match after rounding
-            _baseURI = ds.baseURIs[0];
-            string memory _URI;
-            if (_minted > 0) {
-                _URI = string(abi.encodePacked(_baseURI, Strings.toString(2)));
-            } else {
-                _URI = string(abi.encodePacked(_baseURI, Strings.toString(1)));
-            }
-            _setURIs(tokens, _URI);
-        } else if (roundedX > roundedY) {
-            _baseURI = ds.baseURIs[1];
-            _setURI(_baseURI, roundedX, roundedY, tokens);
-        } else {
-            _baseURI = ds.baseURIs[2];
-            _setURI(_baseURI, roundedY, roundedX, tokens);
-        }
+        _setURIs(tokens, uri);
     }
 
     /* ------------------------------------------------------------------------
@@ -187,61 +161,6 @@ contract ManagementFacet {
         for (uint256 i = 0; i < len; i++) {
             uint256 _token = _tokenIds[i];
             ds.minter.updateURI(_token, uri);
-        }
-    }
-
-    // Decide which image to pick from the baseURI
-    function _setURI(string memory _baseURI, uint256 x, uint256 y, uint[] memory tokens) internal {
-        LibDiamond.DiamondStorage storage ds = LibDiamond.diamondStorage();
-
-        // First, log the x and y we received for debugging:
-        emit LogValues(x, y);
-
-        uint256 imgNo;
-        string memory _base;
-
-        // Cases for minted:burnt ratio images
-        if (x == 100 && y == 0) {
-            _base = _baseURI;
-            imgNo = 1;
-        } else if (x == 90 && y == 10) {
-            _base = _baseURI;
-            imgNo = 2;
-        } else if (x == 80 && y == 20) {
-            _base = _baseURI;
-            imgNo = 3;
-        } else if (x == 70 && y == 30) {
-            _base = _baseURI;
-            imgNo = 4;
-        } else if (x == 60 && y == 40) {
-            _base = _baseURI;
-            imgNo = 5;
-        }
-        // 50/50 or any leftover rounding scenario
-        else {
-            _base = ds.baseURIs[0];
-            imgNo = 2;
-        }
-
-        // Log the image number chosen
-        emit LogImgNo(imgNo);
-        // Log the base URI chosen
-        emit LogBaseURI(_base);
-
-        // Construct final URI and update tokens
-        string memory props = Strings.toString(imgNo);
-        string memory finalURI = string(abi.encodePacked(_base, props));
-        _setURIs(tokens, finalURI);
-    }
-
-    function roundToNearestTen(uint256 value) internal pure returns (uint256) {
-        uint256 remainder = value % 10;
-        if (remainder >= 5) {
-            // Round up to the nearest 10%
-            return value + (10 - remainder);
-        } else {
-            // Round down to the nearest 10%
-            return value - remainder;
         }
     }
 }

@@ -24,9 +24,7 @@ contract TGNDAO is
     IVotes _token,
     uint256 _quorumPercentage,
     uint256 _votingPeriod,
-    uint256 _votingDelay,
-    address _MGROContract, 
-    address _stakingContract
+    uint256 _votingDelay
   )
     Governor("GovernorContract")
     GovernorSettings(
