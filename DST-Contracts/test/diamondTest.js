@@ -39,7 +39,11 @@ describe('DiamondTest', async function () {
       // Deploy Minter and MGRO contracts
       Minter = await ethers.getContractFactory('TreegenNFT');
       MGRO = await ethers.getContractFactory('MGRO');
-      MGRADD = await MGRO.deploy();
+      // MGRO needs LZ endpoint and delegate parameters
+      const MockEndpoint = await ethers.getContractFactory("MockLzEndpointV2");
+      const endpoint = await MockEndpoint.deploy();
+      await endpoint.deployed();
+      MGRADD = await MGRO.deploy(endpoint.address, owner.address, { gasLimit: 8000000 });
       console.log("Good, " ,MGRADD.address)
       NFTADD = await Minter.deploy("example://uri");
       

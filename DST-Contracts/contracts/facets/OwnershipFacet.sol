@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: GPL
-pragma solidity ^0.8.0;
+pragma solidity ^0.8.20;
 
 import { LibDiamond } from "../libraries/LibDiamond.sol";
 import { IERC173 } from "../interfaces/IERC173.sol";

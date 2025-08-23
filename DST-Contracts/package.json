@@ -4,7 +4,12 @@
   "description": "Template for contract projects.",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "verify:diamond": "hardhat verify --network $NETWORK $DIAMOND_ADDRESS",
+    "verify:facet": "hardhat verify --network $NETWORK $FACET_ADDRESS",
+    "verify:mgro": "hardhat verify --network $NETWORK $MGRO_ADDRESS $LZ_ENDPOINT $DEPLOYER",
+    "verify:receiver": "hardhat verify --network $NETWORK $CELO_RECEIVER_ADDRESS $LZ_ENDPOINT $DEPLOYER $MGRO_ADDRESS",
+    "verify:messenger": "hardhat verify --network $NETWORK $BASE_MESSENGER_ADDRESS $LZ_ENDPOINT $DEPLOYER $DIAMOND_ADDRESS"
   },
   "repository": {
     "type": "git",
@@ -31,6 +36,9 @@
     "standard": "^16.0.3"
   },
   "dependencies": {
+    "@layerzerolabs/lz-evm-protocol-v2": "^3.0.125",
+    "@layerzerolabs/oapp-evm": "^0.3.2",
+    "@layerzerolabs/oft-evm": "^3.2.0",
     "@openzeppelin/contracts": "^4.8.0"
   }
 }

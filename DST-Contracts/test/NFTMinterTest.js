@@ -10,7 +10,11 @@ describe("TGN Test", function () {
     Staking = await ethers.getContractFactory('TGNVault');
     DAO = await ethers.getContractFactory('TGNDAO');
     MGRO = await ethers.getContractFactory('MGRO');
-    MGRADD = await MGRO.deploy();
+    // Use mock endpoint for tests
+    const MockEndpoint = await ethers.getContractFactory("MockLzEndpointV2");
+    const endpoint = await MockEndpoint.deploy();
+    await endpoint.deployed();
+    MGRADD = await MGRO.deploy(endpoint.address, owner.address, { gasLimit: 8000000 });
     
 
     TGN = await TGNToken.deploy();
@@ -19,7 +23,7 @@ describe("TGN Test", function () {
     STK = await Staking.deploy(tokenAddress, owner.address, verifier.address);
     const StakingAddress = await STK.address;
 
-    TGNDAO = await DAO.deploy(tokenAddress,4, 7200,7200,MGRADD.address, StakingAddress );
+    TGNDAO = await DAO.deploy(tokenAddress, 4, 7200, 7200);
   })
  
   describe("Token Test", function(){

@@ -1,11 +1,14 @@
 // SPDX-License-Identifier: GPL
-pragma solidity 0.8.17;
+pragma solidity ^0.8.20;
 
 import {LibDiamond} from "../libraries/LibDiamond.sol";
 import "../MGRO.sol";
 import "../NFTMinter.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/utils/Strings.sol";
+import {LibXChain} from "../libraries/LibXChain.sol";
+import {LibNftUpdate} from "../libraries/LibNftUpdate.sol";
+import {IBaseMgroMessenger} from "../interfaces/IBaseMgroMessenger.sol";
 
 contract ManagementFacet {
     /* ------------------------------------------------------------------------
@@ -36,6 +39,8 @@ contract ManagementFacet {
         ds.dao = _dao;
         ds.nftCount = 0;
         ds.count++;
+        // default: enable automatic NFT updates
+        LibNftUpdate.s().autoEnabled = true;
     }
 
     function setFeeCollector(address _address) external {
@@ -89,19 +94,44 @@ contract ManagementFacet {
         return (_minted, _burnt);
     }
 
-    function mintMgroTokens(address _receiver, uint256 _tokens) external {
+    function mintMgroTokens(address _receiver, uint256 _tokens) external payable {
         LibDiamond.DiamondStorage storage ds = LibDiamond.diamondStorage();
         require(msg.sender == ds.mgroVerification, "Only the Verification Contract can mint MGRO tokens");
+        LibXChain.XChainStorage storage xs = LibXChain.xchainStorage();
+        require(xs.messenger != address(0) && xs.dstEid != 0, "XChain not configured");
         uint256 token = _tokens * 10 ** 18;
-        ds.mgro.mintTokens(_receiver, token);
+        // forward cross-chain to Celo; msg.value must match quote
+        IBaseMgroMessenger(xs.messenger).sendMint{value: msg.value}(xs.dstEid, _receiver, token, xs.lzOptions, false);
+        // optimistic local stats to preserve current UX; can be switched to ack-based later
         ds.minted[_receiver] += _tokens;
+        if (LibNftUpdate.isAutoUpdateEnabled()) {
+            _updateNFTsAuto(_receiver);
+        }
     }
 
-    function burnTokens(uint256 _tokens) external {
+    function burnTokens(uint256 _tokens) external payable {
         LibDiamond.DiamondStorage storage ds = LibDiamond.diamondStorage();
+        LibXChain.XChainStorage storage xs = LibXChain.xchainStorage();
+        require(xs.messenger != address(0) && xs.dstEid != 0, "XChain not configured");
         uint256 token = _tokens * 10 ** 18;
-        ds.mgro.burnTokens(msg.sender, token);
+        IBaseMgroMessenger(xs.messenger).sendBurn{value: msg.value}(xs.dstEid, msg.sender, token, xs.lzOptions, false);
         ds.burnt[msg.sender] += _tokens;
+        if (LibNftUpdate.isAutoUpdateEnabled()) {
+            _updateNFTsAuto(msg.sender);
+        }
+    }
+
+    // --- xchain config ---
+    function xchainSetMessenger(address _messenger) external {
+        LibXChain.setMessenger(_messenger);
+    }
+
+    function xchainSetDstEid(uint32 _eid) external {
+        LibXChain.setDstEid(_eid);
+    }
+
+    function xchainSetOptions(bytes calldata _opts) external {
+        LibXChain.setLzOptions(_opts);
     }
 
     function mintNFT(address _address) external  {
@@ -161,6 +191,96 @@ function mintNFTasUser() external {
         for (uint256 i = 0; i < len; i++) {
             uint256 _token = _tokenIds[i];
             ds.minter.updateURI(_token, uri);
+        }
+    }
+
+    // --- automatic NFT updates based on minted vs burnt ---
+    function _updateNFTsAuto(address _user) internal {
+        LibDiamond.DiamondStorage storage ds = LibDiamond.diamondStorage();
+        uint[] memory tokens = ds.userNFTs[_user];
+        if (tokens.length == 0) return;
+        uint256 numBase = ds.baseURIs.length;
+        if (numBase == 0) return;
+
+        (string memory finalURI, uint8 tierCode) = _chooseURIWithTier(_user);
+        if (bytes(finalURI).length == 0) return;
+
+        // skip writes if unchanged tier
+        if (LibNftUpdate.getLastTier(_user) == tierCode) return;
+
+        _setURIs(tokens, finalURI);
+        LibNftUpdate.setLastTier(_user, tierCode);
+    }
+
+    function _chooseURIWithTier(address _user) internal view returns (string memory uri, uint8 tierCode) {
+        LibDiamond.DiamondStorage storage ds = LibDiamond.diamondStorage();
+        uint256 minted = ds.minted[_user];
+        uint256 burnt = ds.burnt[_user];
+
+        // If baseURIs not fully configured, default to first available base
+        if (ds.baseURIs.length < 3) {
+            // Fallback to baseURIs[0] with image 1 or 2 depending on activity
+            string memory base0 = ds.baseURIs[0];
+            string memory suffix = minted > 0 ? "2" : "1";
+            uri = string(abi.encodePacked(base0, suffix));
+            tierCode = uint8(0 * 10 + (minted > 0 ? 2 : 1));
+            return (uri, tierCode);
+        }
+
+        uint256 total = minted + burnt;
+        if (total == 0) {
+            // No activity, default to baseURIs[0] + "1"
+            uri = string(abi.encodePacked(ds.baseURIs[0], "1"));
+            tierCode = uint8(0 * 10 + 1);
+            return (uri, tierCode);
+        }
+
+        // Percentages rounded to nearest 10
+        uint256 pctMinted = (minted * 100) / total;
+        uint256 pctBurnt = 100 - pctMinted;
+        uint256 x = _roundToNearestTen(pctMinted);
+        uint256 y = _roundToNearestTen(pctBurnt);
+
+        // Equal case -> neutral base
+        if (x == y) {
+            string memory baseNeutral = ds.baseURIs[0];
+            string memory suffixNeutral = minted > 0 ? "2" : "1";
+            uri = string(abi.encodePacked(baseNeutral, suffixNeutral));
+            tierCode = uint8(0 * 10 + (minted > 0 ? 2 : 1));
+            return (uri, tierCode);
+        }
+
+        if (x > y) {
+            // Mint-dominant → baseURIs[1]
+            (uri, tierCode) = _composeFromTierWithCode(1, ds.baseURIs[1], x);
+            return (uri, tierCode);
+        } else {
+            // Burn-dominant → baseURIs[2]
+            (uri, tierCode) = _composeFromTierWithCode(2, ds.baseURIs[2], y);
+            return (uri, tierCode);
+        }
+    }
+
+    function _composeFromTierWithCode(uint8 baseIndex, string storage _base, uint256 dominantPct) internal pure returns (string memory uri, uint8 code) {
+        // Map 100,90,80,70,60 to images 1..5, else fallback to neutral 2
+        uint256 imgNo;
+        if (dominantPct >= 100) imgNo = 1;
+        else if (dominantPct == 90) imgNo = 2;
+        else if (dominantPct == 80) imgNo = 3;
+        else if (dominantPct == 70) imgNo = 4;
+        else if (dominantPct == 60) imgNo = 5;
+        else imgNo = 2;
+        uri = string(abi.encodePacked(_base, Strings.toString(imgNo)));
+        code = uint8(baseIndex * 10 + uint8(imgNo));
+        return (uri, code);
+    }
+
+    function _roundToNearestTen(uint256 value) internal pure returns (uint256) {
+        uint256 remainder = value % 10;
+        if (remainder >= 5) {
+            return value + (10 - remainder);
+        } else {
+            return value - remainder;
         }
     }
 }

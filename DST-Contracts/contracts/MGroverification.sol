@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: GPL
-pragma solidity 0.8.17;
+pragma solidity ^0.8.20;
 
 import "./TGNVault.sol";
 import "./facets/ManagementFacet.sol";

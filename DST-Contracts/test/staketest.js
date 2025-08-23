@@ -18,7 +18,7 @@ describe("SimpleStaking", () => {
         [owner, staker1, staker2, mgroVerification] = await ethers.getSigners();
 
         const TokenFactory = await ethers.getContractFactory("TGNToken"); // Replace with your actual token contract
-        Token = await TokenFactory.connect(owner).deploy();
+        Token = await TokenFactory.connect(owner).deploy({ gasLimit: 8000000 });
         // await Token.mint(staker1.address, stakeAmount);
         // await Token.mint(staker2.address, stakeAmount);
         await Token.mint(owner.address, initialSupply);
