@@ -1,0 +1,11 @@
+.env
+
+/DST-Contracts/.env
+/DST-Contracts/deployments
+/DST-Contracts/out
+/DST-Contracts/cache
+/DST-Contracts/node_modules
+/DST-Contracts/broadcast
+
+# Foundry locks
+foundry.lock
