@@ -39,7 +39,7 @@ fi
 
 # Optionally deploy messenger if MANAGEMENT_ADDRESS provided and no MESSENGER_ADDRESS
 if [[ -n "${MANAGEMENT_ADDRESS:-}" && -z "${MESSENGER_ADDRESS:-}" ]]; then
-  echo "[deploy_base] Deploying BaseMgroMessenger for management=$MANAGEMENT_ADDRESS"
+  echo "[deploy_base] Deploying BaseMgroOapp for management=$MANAGEMENT_ADDRESS"
   forge script script/DeployMessenger.s.sol:DeployMessenger \
     --rpc-url "$RPC_ALIAS" \
     --private-key "$TESTNET_PRIVATE_KEY" \
@@ -54,5 +54,4 @@ forge script script/FullSetup.s.sol:FullSetup \
 
 echo "[deploy_base] FullSetup deployment completed on $CHAIN_NAME"
 echo "[deploy_base] Check the console output above for deployed addresses"
-
 

@@ -1,105 +1,134 @@
-### Contract Setup and Operations Checklist
+# ONFT Deployment Checklist
 
-## Prerequisites
-- **Foundry/Node**: Install Foundry (forge/cast) and Node.js
-- **.env**: set `RPC_API_KEY` and keep your `TESTNET_PRIVATE_KEY` available to export inline when running scripts
-- **RPCs**: `foundry.toml` already configured to use `RPC_API_KEY` for `base_sepolia`, `optimism_sepolia`, `base`, `celo`
-- **Deps**:
-  - `git submodule update --init --recursive`
-  - `forge build -vvvv`
+Use this checklist to ensure a complete and secure ONFT deployment.
 
-## Testnet rollout (recommended)
-- **Deploy MGRO (OP Sepolia)**:
+## Pre-Deployment
+
+- [ ] Set up environment variables in `.env` file
+- [ ] Verify private key has sufficient funds on target networks
+- [ ] Test contracts locally with `forge test`
+- [ ] Review security parameters and DVN configurations
+- [ ] Plan deployment order (source chain first for adapters)
+
+## Deployment Phase
+
+### 1. Deploy Contracts
+
+#### For New NFT Collections (ONFT721)
+- [ ] Deploy to Chain A: `./bash/deploy_onft.sh <network> <name> <symbol>`
+- [ ] Deploy to Chain B: `./bash/deploy_onft.sh <network> <name> <symbol>`
+- [ ] Deploy to Chain C: `./bash/deploy_onft.sh <network> <name> <symbol>`
+- [ ] Record all contract addresses
+
+#### For Existing NFT Collections (ONFT721Adapter)
+- [ ] Deploy adapter to source chain: `./bash/deploy_onft_adapter.sh <network> <token_address>`
+- [ ] Deploy ONFT721 to destination chains: `./bash/deploy_onft.sh <network> <name> <symbol>`
+- [ ] Record all contract addresses
+
+### 2. Configure Peer Relationships
+
+- [ ] Configure Chain A → Chain B: `./bash/configure_peers.sh <chain_a_contract> <chain_b> <chain_b_contract>`
+- [ ] Configure Chain B → Chain A: `./bash/configure_peers.sh <chain_b_contract> <chain_a> <chain_a_contract>`
+- [ ] Configure Chain A → Chain C: `./bash/configure_peers.sh <chain_a_contract> <chain_c> <chain_c_contract>`
+- [ ] Configure Chain C → Chain A: `./bash/configure_peers.sh <chain_c_contract> <chain_a> <chain_a_contract>`
+- [ ] Configure Chain B → Chain C: `./bash/configure_peers.sh <chain_b_contract> <chain_c> <chain_c_contract>`
+- [ ] Configure Chain C → Chain B: `./bash/configure_peers.sh <chain_c_contract> <chain_b> <chain_b_contract>`
+ 
+### 3. Configure Security Parameters
+
+- [ ] Set DVN configurations for each chain pair
+- [ ] Configure message execution options
+- [ ] Set appropriate gas limits
+- [ ] Review and test security settings
+
+### 4. Initial Testing
+
+- [ ] Mint test NFTs on source chain
+- [ ] Send test NFT cross-chain
+- [ ] Verify NFT received on destination chain
+- [ ] Test reverse transfer (back to source chain)
+- [ ] Verify total supply consistency
+
+## Post-Deployment
+
+### 5. Verification
+
+- [ ] Verify all contracts on block explorers
+- [ ] Test all cross-chain pathways
+- [ ] Verify peer configurations: `cast call <contract> "peers(uint32)" <eid>`
+- [ ] Check enforced options: `cast call <contract> "enforcedOptions(uint32,uint16)" <eid> <msgType>`
+
+### 6. Documentation
+
+- [ ] Document all contract addresses
+- [ ] Record deployment parameters
+- [ ] Create user guides
+- [ ] Document any custom configurations
+
+### 7. Security Review
+
+- [ ] Review all peer relationships
+- [ ] Verify DVN configurations
+- [ ] Check gas limits are appropriate
+- [ ] Ensure proper access controls
+- [ ] Test emergency recovery procedures
+
+## Production Readiness
+
+- [ ] All tests passing
+- [ ] Security audit completed (if required)
+- [ ] Monitoring and alerting set up
+- [ ] Backup and recovery procedures documented
+- [ ] Team trained on operations
+- [ ] Incident response plan ready
+
+## Emergency Procedures
+
+- [ ] Document emergency recovery steps
+- [ ] Test emergency functions (if applicable)
+- [ ] Prepare communication plan for incidents
+- [ ] Set up monitoring for failed transactions
+
+## Maintenance
+
+- [ ] Schedule regular security reviews
+- [ ] Monitor cross-chain transaction success rates
+- [ ] Update configurations as needed
+- [ ] Keep dependencies updated
+- [ ] Monitor LayerZero protocol updates
+
+---
+
+## Quick Commands Reference
+
 ```bash
-RPC_API_KEY=... TESTNET_PRIVATE_KEY=0x... ./scripts/deploy_mgro_celo.sh sepolia
-# Note: Extract MGRO address from console output of deploy_mgro_celo.sh
-```
-- **Deploy Diamond stack (Base Sepolia)**:
-```bash
-RPC_API_KEY=... TESTNET_PRIVATE_KEY=0x... MGRO_ADDRESS=$MGRO_ADDRESS ./scripts/deploy_base.sh sepolia
-```
-- Outputs: Check console output for deployed addresses
+# Deploy ONFT721
+./bash/deploy_onft.sh sepolia "MyONFT" "MONFT"
 
-## Mainnet rollout (plan)
-- **Deploy MGRO (Celo mainnet)**:
-```bash
-RPC_API_KEY=... TESTNET_PRIVATE_KEY=0x... ./scripts/deploy_mgro_celo.sh mainnet
-```
-- **Deploy Diamond stack (Base mainnet)**:
-```bash
-# Note: Extract MGRO address from console output of deploy_mgro_celo.sh
-RPC_API_KEY=... TESTNET_PRIVATE_KEY=0x... MGRO_ADDRESS=$MGRO_ADDRESS ./scripts/deploy_base.sh mainnet
+# Deploy ONFT721Adapter
+./bash/deploy_onft_adapter.sh sepolia 0x1234...
+
+# Configure peers
+./bash/configure_peers.sh 0x1234... sepolia 0x5678...
+
+# Mint NFT
+./bash/mint_onft.sh 0x1234... 0x5678... 1
+
+# Send cross-chain
+./bash/send_onft.sh 0x1234... sepolia 0x5678... 1
 ```
 
-## Messenger/Bridge setup (Base)
-- If not auto-set during FullSetup, deploy and wire the messenger:
-```bash
-# Deploy messenger (Base)
-RPC_API_KEY=... TESTNET_PRIVATE_KEY=0x... \
-# Note: Extract Diamond address from console output of deploy_base.sh
-forge script script/DeployMessenger.s.sol:DeployMessenger \
-  --rpc-url base_sepolia --broadcast --verify -vvvv
-```
-- Management facet xchain configuration (done by FullSetup if envs provided):
-  - **Messenger**: `xchainSetMessenger(<messenger>)`
-  - **DstEid**: `xchainSetDstEid(<partner_eid>)` (Base Sepolia → 40232, Base mainnet → 30125)
-  - **Options**: `xchainSetOptions(<bytes>)` (gas limit and options)
+## Network Endpoint IDs
 
-## Administration (post-deploy)
-- **DAO-controlled** (set during `initialize`):
-  - `setFeeCollector(address)`
-  - `setPurchaseToken(address,uint256 price)`
-- **Owner-controlled**:
-  - `setVerificationContract(address)`
-  - `setMgroToken(address)` - **Set MGRO token when available**
-  - `addBaseURI(string)` up to 3 entries
-  - `mintNFT(address)` (admin mint)
-- **End-user flow** (optional):
-  - Ensure `feeCollector` set, `buyToken` set to MGRO, and `nftPrice` > 0
-  - User approves diamond for `nftPrice` and calls `mintNFTasUser()`
+- Sepolia: 40161
+- Base Sepolia: 40245
+- Optimism Sepolia: 40232
+- Arbitrum Sepolia: 40231
+- Polygon Amoy: 40267
+- Avalanche Fuji: 40106
+- BSC Testnet: 40102
 
-## Adding MGRO Token Later
-If MGRO token is not available during initial deployment:
-- [ ] Deploy MGRO on the target chain (OP Sepolia/Celo) using `./scripts/deploy_mgro_celo.sh`
-- [ ] Set the MGRO token on the Diamond using:
-  ```bash
-  cast call <DIAMOND_ADDRESS> "setMgroToken(address)" <MGRO_ADDRESS> --rpc-url <RPC_URL> --private-key <PRIVATE_KEY>
-  ```
-- [ ] Update purchase token configuration:
-  ```bash
-  cast call <DIAMOND_ADDRESS> "setPurchaseToken(address,uint256)" <MGRO_ADDRESS> <PRICE> --rpc-url <RPC_URL> --private-key <PRIVATE_KEY>
-  ```
+## LayerZero Endpoints
 
-## Upgrades (Diamond / EIP-2535)
-- Build new facet(s) and deploy with `--verify`
-- Prepare diamond cut (Add/Replace/Remove selectors)
-- Execute `diamondCut(cuts, init, calldata)` from owner
-- Use an `init` initializer for storage migrations when needed
-- Validate:
-  - Loupe facet shows expected facets
-  - DAO/owner permissions enforced
-  - Critical flows green on fork/testnet
-
-## Future: MGRO on Base
-- Deploy MGRO on Base when desired (testnet or mainnet) using `script/deployMgroCelo.s.sol`
-- Configure OFT peers and endpoints per LayerZero/OFT requirements
-- Update management chain config:
-  - `xchainSetDstEid(newPartnerEid)`
-  - `xchainSetMessenger(newMessenger)` (if changed)
-  - `xchainSetOptions(...)`
-- If MGRO and Diamond are on the same chain, set `buyToken` to local MGRO and consider reducing cross-chain dependencies
-
-## Troubleshooting
-- Env present for each run: `RPC_API_KEY`, `TESTNET_PRIVATE_KEY`, and any overrides (`MGRO_ADDRESS`, `DAO_ADDRESS`, `FEE_COLLECTOR`, `PURCHASE_PRICE`, `MESSENGER_ADDRESS`, `DST_EID`)
-- If verification fails, re-run with `-vvvv` and confirm solc version and import paths match `foundry.toml`
-- Cross-chain send reverts: ensure messenger and dstEid set; include sufficient native fee
-
-## Handy commands
-```bash
-forge build -vvvv
-forge test -vvvv
-```
-
-Notes: Primary scripts are `script/FullSetup.s.sol`, `script/deployMgroCelo.s.sol`, `script/DeployMessenger.s.sol`, plus bash helpers in `scripts/`.
-
-
+- Mainnet: 0x1a44076050125825900e736c501f859c50fE728c
+- Testnet: 0x6EDCE65403992e310A62460808c4b910D972f10f

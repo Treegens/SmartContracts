@@ -23,8 +23,8 @@ contract TGNDAO is
   constructor(
     IVotes _token,
     uint256 _quorumPercentage,
-    uint256 _votingPeriod,
-    uint256 _votingDelay
+    uint48 _votingDelay,
+    uint32 _votingPeriod
   )
     Governor("GovernorContract")
     GovernorSettings(
@@ -34,15 +34,12 @@ contract TGNDAO is
     )
     GovernorVotes(_token)
     GovernorVotesQuorumFraction(_quorumPercentage)
-
-  {
-
-  }
+  {}
 
   function votingDelay()
     public
     view
-    override(IGovernor, GovernorSettings)
+    override(Governor, GovernorSettings)
     returns (uint256)
   {
     return super.votingDelay();
@@ -51,7 +48,7 @@ contract TGNDAO is
   function votingPeriod()
     public
     view
-    override(IGovernor, GovernorSettings)
+    override(Governor, GovernorSettings)
     returns (uint256)
   {
     return super.votingPeriod();
@@ -62,7 +59,7 @@ contract TGNDAO is
   function quorum(uint256 blockNumber)
     public
     view
-    override(IGovernor, GovernorVotesQuorumFraction)
+    override(Governor, GovernorVotesQuorumFraction)
     returns (uint256)
   {
     return super.quorum(blockNumber);
@@ -106,16 +103,7 @@ contract TGNDAO is
     return super.proposalThreshold();
   }
 
-  function _execute(
-    uint256 proposalId,
-    address[] memory targets,
-    uint256[] memory values,
-    bytes[] memory calldatas,
-    bytes32 descriptionHash
-  ) internal override(Governor) {
-    super._execute(proposalId, targets, values, calldatas, descriptionHash);
-
-  }
+  // Remove custom _execute override; Governor v5 uses _executeOperations hook
 
   function _castVote(uint256 proposalId,
         address account,
@@ -139,7 +127,7 @@ contract TGNDAO is
   function _executor()
     internal
     view
-    override(Governor )
+    override(Governor)
     returns (address)
   {
     return super._executor();
@@ -148,7 +136,7 @@ contract TGNDAO is
   function supportsInterface(bytes4 interfaceId)
     public
     view
-    override(Governor )
+    override(Governor)
     returns (bool)
   {
     return super.supportsInterface(interfaceId);

@@ -15,6 +15,7 @@ library ChainConfig {
 		if (chainId == 84532) return LzInfo({ eid: 40245, endpoint: 0x6EDCE65403992e310A62460808c4b910D972f10f });
 		// OP Sepolia
 		if (chainId == 11155420) return LzInfo({ eid: 40232, endpoint: 0x6EDCE65403992e310A62460808c4b910D972f10f });
+		
 	}
 
 	// Mainnet EIDs and EndpointV2 for Base (diamond) and Celo (MGRO)

@@ -5,7 +5,8 @@ pragma solidity ^0.8.17;
 import "forge-std/Script.sol"; // Foundry script utilities
 import {MGRO} from "../src/MGRO.sol"; // Main MGRO token contract
 import {ChainConfig} from "../script/ChainConfig.s.sol"; // Chain configuration helper
-import {CeloMgroReceiver} from "../src/bridge/CeloMgroReceiver.sol"; // Bridge receiver contract
+import {CeloMgroOapp} from "../src/bridge/CeloMgroOapp.sol"; // Bridge receiver contract
+import { OptionsBuilder } from "@layerzerolabs/oapp-evm/contracts/oapp/libs/OptionsBuilder.sol";
 import {CREATE3} from "../lib/solady/src/utils/CREATE3.sol"; // Deterministic deployment library
 
 /**
@@ -14,6 +15,7 @@ import {CREATE3} from "../lib/solady/src/utils/CREATE3.sol"; // Deterministic de
  * @dev Uses CREATE3 for deterministic deployment addresses
  */
 contract DeployMgroCelo is Script {
+    using OptionsBuilder for bytes;
     /**
      * @notice Main deployment function
      * @return mgro_ Address of deployed MGRO contract
@@ -35,7 +37,7 @@ contract DeployMgroCelo is Script {
         address delegate = msg.sender;
 
         // Deterministic MGRO deployment with fixed salt
-        bytes32 salt = keccak256(abi.encode("Treegens_MGRO"));
+        bytes32 salt = keccak256(abi.encode("Treegens_MGRO_V1"));
         bytes memory initCode = abi.encodePacked(
             type(MGRO).creationCode, 
             abi.encode(info.endpoint, delegate)
@@ -45,17 +47,20 @@ contract DeployMgroCelo is Script {
         console.log("[DeployMgroCelo] MGRO:", mgro_);
 
         // Deploy receiver contract for bridge functionality
-        CeloMgroReceiver receiver = new CeloMgroReceiver(
+        CeloMgroOapp receiver = new CeloMgroOapp(
             info.endpoint,
             delegate,
             mgro_
         );
         address receiverAddr = address(receiver);
-        console.log("[DeployMgroCelo] CeloMgroReceiver:", receiverAddr);
+        console.log("[DeployMgroCelo] CeloMgroOapp:", receiverAddr);
 
         // Configure MGRO with receiver as management contract
         mgro.setManagementContract(receiverAddr);
         console.log("[DeployMgroCelo] MGRO management set to receiver");
+
+        // Note: ack options are now enforced by the endpoint, no need to set them
+        console.log("[DeployMgroCelo] Using enforced ack options from endpoint");
 
         				// Log deployment details
 		console.log("[DeployMgroCelo] chainId:", block.chainid);
@@ -66,4 +71,5 @@ contract DeployMgroCelo is Script {
 
         vm.stopBroadcast();
     }
+
 }

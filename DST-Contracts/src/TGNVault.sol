@@ -59,7 +59,7 @@ contract TGNVault  is Ownable{
     }
 
     // —— Constructor —— 
-    constructor(address _tgn, address _DAO)  {
+    constructor(address _tgn, address _DAO)  Ownable(msg.sender) {
         if (_tgn == address(0) || _DAO == address(0)) revert InvalidInput();
         tgn = IERC20(_tgn);
         daoContract = _DAO;

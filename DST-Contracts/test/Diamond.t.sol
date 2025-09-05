@@ -78,10 +78,8 @@ contract DiamondTest is Test, IERC721Receiver {
             selectors[i++] = ManagementFacet.burnTokens.selector;
             selectors[i++] = ManagementFacet.mintNFT.selector;
             selectors[i++] = ManagementFacet.mintNFTasUser.selector;
-            selectors[i++] = ManagementFacet.updateNFTs.selector;
             selectors[i++] = ManagementFacet.xchainSetMessenger.selector;
             selectors[i++] = ManagementFacet.xchainSetDstEid.selector;
-            selectors[i++] = ManagementFacet.xchainSetOptions.selector;
             cuts[2] = IDiamondCut.FacetCut({facetAddress: address(mgmtImpl), action: IDiamondCut.FacetCutAction.Add, functionSelectors: selectors});
         }
 
@@ -142,10 +140,6 @@ contract DiamondTest is Test, IERC721Receiver {
         mgmt.mintNFT(deployer);
         // token 1 should exist; initial URI is baseURIs[0] + "1"
         assertEq(nft.tokenURI(1), string(abi.encodePacked("ipfs://A/", "1")));
-
-        // update URI via management
-        mgmt.updateNFTs(deployer, "ipfs://NEW/2");
-        assertEq(nft.tokenURI(1), "ipfs://NEW/2");
     }
 
     function testPurchaseFlow_mintNFTasUser() public {

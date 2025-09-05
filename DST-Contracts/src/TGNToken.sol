@@ -3,8 +3,10 @@ pragma solidity ^0.8.20;
 
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/token/ERC20/extensions/ERC20Votes.sol";
+import "@openzeppelin/contracts/token/ERC20/extensions/ERC20Permit.sol";
+import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 
-contract TGNToken is ERC20, Ownable, ERC20Permit, ERC20Votes {
+contract TGNToken is Ownable, ERC20, ERC20Permit, ERC20Votes {
   error InvalidInput();
   uint256 public constant MAX_SUPPLY= 300000000 *10**18;
 
@@ -13,6 +15,7 @@ contract TGNToken is ERC20, Ownable, ERC20Permit, ERC20Votes {
     constructor()
         ERC20("TGNToken", "TGN")
         ERC20Permit("TGNToken")
+        Ownable(msg.sender)
     {    }
 
 
@@ -58,23 +61,20 @@ contract TGNToken is ERC20, Ownable, ERC20Permit, ERC20Votes {
         return true;
     }
 
-    // The following functions are overrides required by Solidity.
+    // OpenZeppelin v5: override the unified _update hook for ERC20Votes
+    function _update(address from, address to, uint256 value) internal override(ERC20, ERC20Votes) {
+        super._update(from, to, value);
+    }
 
-   function _afterTokenTransfer(
-    address from,
-    address to,
-    uint256 amount
-  ) internal override(ERC20, ERC20Votes) {
-    super._afterTokenTransfer(from, to, amount);
-  }
-  
-   function _mint(address to, uint256 amount) internal override(ERC20, ERC20Votes) {
-    super._mint(to, amount);
-  }
-
-  function _burn(address account, uint256 amount) internal override(ERC20, ERC20Votes) {
-    super._burn(account, amount);
-  }
+    // OZ v5: disambiguate Nonces.nonces vs ERC20Permit nonces via override
+    function nonces(address owner)
+        public
+        view
+        override(ERC20Permit, Nonces)
+        returns (uint256)
+    {
+        return super.nonces(owner);
+    }
 
 
   //OWNER OVERRIDE OF TIMELOCK

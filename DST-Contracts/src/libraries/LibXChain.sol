@@ -7,7 +7,7 @@ library LibXChain {
     bytes32 internal constant XCHAIN_STORAGE_POSITION = keccak256("treegen.management.xchain.storage");
 
     struct XChainStorage {
-        address messenger; // BaseMgroMessenger on Base
+        address messenger; // BaseMgroOapp on Base
         uint32 dstEid;     // Celo Endpoint ID
         bytes lzOptions;   // default LayerZero options
     }

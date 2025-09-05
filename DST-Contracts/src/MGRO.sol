@@ -1,7 +1,8 @@
 // SPDX-License-Identifier: GPL
-pragma solidity ^0.8.20;
+pragma solidity ^0.8.24;
 
 import "@layerzerolabs/oft-evm/contracts/OFT.sol";
+import "@openzeppelin/contracts/access/Ownable.sol";
 
 contract MGRO is OFT {
     error InvalidInput();
@@ -9,11 +10,10 @@ contract MGRO is OFT {
     address public management;
 
     // Canonical MGRO on Celo; bridging via OFT is built-in but peers can remain unset until needed.
-    constructor(address _lzEndpoint, address _delegate)
-        OFT("MGRO", "MGRO", _lzEndpoint, _delegate)
-    {
-        _transferOwnership(_delegate);
-    }
+    constructor(
+        address _lzEndpoint,
+        address _delegate
+    ) OFT("MGRO", "MGRO", _lzEndpoint, _delegate) Ownable(_delegate) {}
 
     modifier onlyManagement() {
         require(msg.sender == management, "Unauthorized");
@@ -26,14 +26,23 @@ contract MGRO is OFT {
     }
 
     // Supply control: ONLY via cross-chain receiver (set as management)
-    function mintTokens(address _receiver, uint _tokens) external onlyManagement {
+    function mintTokens(
+        address _receiver,
+        uint _tokens
+    ) external onlyManagement {
         if (_receiver == address(0)) revert InvalidInput();
         require(_tokens > 0, "Invalid Token Number");
         _mint(_receiver, _tokens);
     }
 
-    function burnTokens(address _address, uint tokenAmt) external onlyManagement {
-        require(balanceOf(_address) >= tokenAmt, "Not Enough tokens to burn");
+    function burnTokens(
+        address _address,
+        uint tokenAmt
+    ) external onlyManagement {
+        require(
+            balanceOf(_address) >= tokenAmt,
+            "MGRO: Not Enough tokens to burn"
+        );
         _burn(_address, tokenAmt);
     }
 }
