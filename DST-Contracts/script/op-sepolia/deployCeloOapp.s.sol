@@ -1,12 +1,12 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
-import {CeloMgroOapp} from "../src/bridge/CeloMgroOapp.sol";
+import {CeloMgroOapp} from "../../src/bridge/CeloMgroOapp.sol";
 import {OApp} from "@layerzerolabs/oapp-evm/contracts/oapp/OApp.sol";
-import {ChainConfig} from "./ChainConfig.s.sol";
+import {ChainConfig} from "../../script/ChainConfig.s.sol";
 import {Script} from "forge-std/Script.sol";
 import {console} from "forge-std/console.sol";
-import {MGRO} from "../src/MGRO.sol";
+import {MGRO} from "../../src/MGRO.sol";
 import {OptionsBuilder} from "@layerzerolabs/oapp-evm/contracts/oapp/libs/OptionsBuilder.sol";
 
 contract DeployCeloOapp is Script {

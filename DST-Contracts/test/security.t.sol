@@ -13,7 +13,7 @@ import {IDiamondCut} from "src/interfaces/IDiamondCut.sol";
 import {DiamondInit} from "src/upgradeInitializers/DiamondInit.sol";
 
 import {MGRO} from "src/MGRO.sol";
-import {TreegenNFT} from "src/NFTMinter.sol";
+import {TreegenNFT} from "src/onft/TreegenNFT_Canonical.sol";
 import {BaseMgroOapp} from "src/bridge/BaseMgroOapp.sol";
 import {MockLzEndpointV2} from "./MockLzEndpointV2.sol";
 import {MockMessenger} from "./MockMessenger.sol";
@@ -39,7 +39,7 @@ contract SecurityAuditTest is Test {
         // Deploy infrastructure
         lzEndpoint = new MockLzEndpointV2();
         mgro = new MGRO(address(lzEndpoint), deployer);
-        nft = new TreegenNFT("ipfs://base/");
+        nft = new TreegenNFT("Treegen", "TGN", "ipfs://base/", address(lzEndpoint), deployer);
         
         // Deploy Diamond
         DiamondCutFacet cut = new DiamondCutFacet();

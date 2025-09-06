@@ -14,7 +14,7 @@ import {IDiamondLoupe} from "src/interfaces/IDiamondLoupe.sol";
 import {DiamondInit} from "src/upgradeInitializers/DiamondInit.sol";
 
 import {MGRO} from "src/MGRO.sol";
-import {TreegenNFT} from "src/NFTMinter.sol";
+import {TreegenNFT} from "src/onft/TreegenNFT_Canonical.sol";
 import {MockLzEndpointV2} from "./MockLzEndpointV2.sol";
 import {MockMessenger} from "./MockMessenger.sol";
 
@@ -35,7 +35,7 @@ contract DiamondTest is Test, IERC721Receiver {
         // external contracts
         MockLzEndpointV2 lzEndpoint = new MockLzEndpointV2();
         mgro = new MGRO(address(lzEndpoint), deployer);
-        nft = new TreegenNFT("example://uri");
+        nft = new TreegenNFT("Treegen", "TGN", "example://uri", address(lzEndpoint), deployer);
 
         // diamond base
         DiamondCutFacet cut = new DiamondCutFacet();

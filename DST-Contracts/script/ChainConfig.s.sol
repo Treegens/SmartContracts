@@ -7,15 +7,28 @@ library ChainConfig {
 	string internal constant BASE_URI_B = "ipfs://Qmbza7VprgNZ8eWzjRFWBaZUj11tZ2kEHVA6VUZGnsGVtu/";
 	string internal constant BASE_URI_C = "ipfs://QmaHhmm9bwJSF95NDwqyFiCX3LPDi7g6vY2zNXxQuDqgXe/";
 
+	// Testnet USDC addresses
+	function getTestnetUSDC(uint256 chainId) internal pure returns (address) {
+		// Base Sepolia USDC
+		if (chainId == 84532) return 0x036CbD53842c5426634e7929541eC2318f3dCF7e;
+		// OP Sepolia USDC
+		if (chainId == 11155420) return 0x5dEaC602762362FE5f135Fa5904351916CA540D95;
+		// Ethereum Sepolia USDC
+		if (chainId == 11155111) return 0x1c7D4B196Cb0C7B01d743Fbc6116a902379C7238;
+		return address(0);
+	}
+
 	struct LzInfo { uint32 eid; address endpoint; }
 
-	// Testnet EIDs and EndpointV2 for Base Sepolia (diamond) and OP Sepolia (MGRO)
+	// Testnet EIDs and EndpointV2 for Base Sepolia (diamond), OP Sepolia (MGRO), and Ethereum Sepolia (NFT)
 	function testnetLzInfo(uint256 chainId) internal pure returns (LzInfo memory info) {
 		// Base Sepolia
 		if (chainId == 84532) return LzInfo({ eid: 40245, endpoint: 0x6EDCE65403992e310A62460808c4b910D972f10f });
 		// OP Sepolia
 		if (chainId == 11155420) return LzInfo({ eid: 40232, endpoint: 0x6EDCE65403992e310A62460808c4b910D972f10f });
-		
+		// Ethereum Sepolia
+		if (chainId == 11155111) return LzInfo({ eid: 40161, endpoint: 0x6EDCE65403992e310A62460808c4b910D972f10f });
+
 	}
 
 	// Mainnet EIDs and EndpointV2 for Base (diamond) and Celo (MGRO)
@@ -27,7 +40,7 @@ library ChainConfig {
 	}
 
 	function isTestnet(uint256 chainId) internal pure returns (bool) {
-		return chainId == 84532 || chainId == 11155420; // base sepolia or op sepolia
+		return chainId == 84532 || chainId == 11155420 || chainId == 11155111; // base sepolia, op sepolia, or ethereum sepolia
 	}
 
 	function getLzInfo(uint256 chainId) internal pure returns (LzInfo memory) {
