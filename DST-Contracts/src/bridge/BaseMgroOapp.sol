@@ -4,16 +4,20 @@ pragma solidity ^0.8.20;
 import {OApp, Origin} from "@layerzerolabs/oapp-evm/contracts/oapp/OApp.sol";
 import {MessagingFee, MessagingReceipt} from "@layerzerolabs/lz-evm-protocol-v2/contracts/interfaces/ILayerZeroEndpointV2.sol";
 import { Ownable } from "@openzeppelin/contracts/access/Ownable.sol";
+import { OAppOptionsType3 } from "@layerzerolabs/oapp-evm/contracts/oapp/libs/OAppOptionsType3.sol";
 
 interface IManagementAck {
     function confirmMint(address _receiver, uint256 _tokens) external;
     function confirmBurn(address _user, uint256 _tokens) external;
 }
 
-contract BaseMgroOapp is Ownable, OApp {
+contract BaseMgroOapp is Ownable, OApp, OAppOptionsType3 {
     error Unauthorized();
 
     address public management; // Diamond management contract on Base allowed to send msgs
+
+    // Message type used for standard forward operations (Mint/Burn)
+    uint16 internal constant MSG_TYPE_FORWARD = 1;
 
     enum Operation {
         Mint,
@@ -51,7 +55,8 @@ contract BaseMgroOapp is Ownable, OApp {
         bool _payInLzToken
     ) external view returns (MessagingFee memory fee) {
         bytes memory payload = abi.encode(Operation.Mint, _user, _amount);
-        return _quote(_dstEid, payload, bytes(""), _payInLzToken);
+        bytes memory options = enforcedOptions[_dstEid][MSG_TYPE_FORWARD];
+        return _quote(_dstEid, payload, options, _payInLzToken);
     }
 
     function quoteBurn(
@@ -61,7 +66,8 @@ contract BaseMgroOapp is Ownable, OApp {
         bool _payInLzToken
     ) external view returns (MessagingFee memory fee) {
         bytes memory payload = abi.encode(Operation.Burn, _user, _amount);
-        return _quote(_dstEid, payload, bytes(""), _payInLzToken);
+        bytes memory options = enforcedOptions[_dstEid][MSG_TYPE_FORWARD];
+        return _quote(_dstEid, payload, options, _payInLzToken);
     }
 
     // -------- send forward ops to Celo --------
@@ -74,8 +80,9 @@ contract BaseMgroOapp is Ownable, OApp {
         require(_user != address(0), "Invalid recipient");
         require(_amount > 0, "Invalid amount");
         bytes memory payload = abi.encode(Operation.Mint, _user, _amount);
-        MessagingFee memory fee = _quote(_dstEid, payload, bytes(""), _payInLzToken);
-        receipt = _lzSend(_dstEid, payload, bytes(""), fee, msg.sender);
+        bytes memory options = enforcedOptions[_dstEid][MSG_TYPE_FORWARD];
+        MessagingFee memory fee = _quote(_dstEid, payload, options, _payInLzToken);
+        receipt = _lzSend(_dstEid, payload, options, fee, msg.sender);
     }
 
     function sendBurn(
@@ -87,8 +94,9 @@ contract BaseMgroOapp is Ownable, OApp {
         require(_user != address(0), "Invalid user");
         require(_amount > 0, "Invalid amount");
         bytes memory payload = abi.encode(Operation.Burn, _user, _amount);
-        MessagingFee memory fee = _quote(_dstEid, payload, bytes(""), _payInLzToken);
-        receipt = _lzSend(_dstEid, payload, bytes(""), fee, msg.sender);
+        bytes memory options = enforcedOptions[_dstEid][MSG_TYPE_FORWARD];
+        MessagingFee memory fee = _quote(_dstEid, payload, options, _payInLzToken);
+        receipt = _lzSend(_dstEid, payload, options, fee, msg.sender);
     }
 
     // -------- receive ACKs from Celo and forward to management --------

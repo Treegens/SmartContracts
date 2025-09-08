@@ -6,8 +6,11 @@ import { Origin } from "@layerzerolabs/oapp-evm/contracts/oapp/interfaces/IOAppR
 import { MessagingFee} from "@layerzerolabs/lz-evm-protocol-v2/contracts/interfaces/ILayerZeroEndpointV2.sol";
 import { MGRO } from "../MGRO.sol";
 import { Ownable } from "@openzeppelin/contracts/access/Ownable.sol";
+import { OAppOptionsType3 } from "@layerzerolabs/oapp-evm/contracts/oapp/libs/OAppOptionsType3.sol";
 
-contract CeloMgroOapp is Ownable, OApp {
+contract CeloMgroOapp is Ownable, OApp, OAppOptionsType3 {
+    // Message type used for ACK messages sent back to Base
+    uint16 internal constant MSG_TYPE_ACK = 1;
 
     enum Operation {
         Mint,
@@ -50,8 +53,8 @@ contract CeloMgroOapp is Ownable, OApp {
         bool _payInLzToken
     ) external view returns (MessagingFee memory fee) {
         bytes memory ack = abi.encode(Ack.MintOk, _user, _amount);
-        // Use enforced options on the endpoint; send with empty options
-        return _quote(_dstEid, ack, bytes(""), _payInLzToken);
+        bytes memory options = enforcedOptions[_dstEid][MSG_TYPE_ACK];
+        return _quote(_dstEid, ack, options, _payInLzToken);
     }
     
     function _lzReceive(
@@ -78,9 +81,10 @@ contract CeloMgroOapp is Ownable, OApp {
         bytes memory ack = abi.encode(ackType, user, amount);
 
         // Fallback to contract balance if no value was forwarded
-        MessagingFee memory fee = _quote(origin.srcEid, ack, bytes(""), false);
+        bytes memory options = enforcedOptions[origin.srcEid][MSG_TYPE_ACK];
+        MessagingFee memory fee = _quote(origin.srcEid, ack, options, false);
         if (address(this).balance >= fee.nativeFee) {
-            _lzSend(origin.srcEid, ack, bytes(""), fee, address(this));
+            _lzSend(origin.srcEid, ack, options, fee, address(this));
             emit AckSent(uint8(ackType), user, amount, origin.srcEid, fee.nativeFee);
         } else {
             emit AckInsufficientFunds(uint8(ackType), user, amount, fee.nativeFee, address(this).balance);

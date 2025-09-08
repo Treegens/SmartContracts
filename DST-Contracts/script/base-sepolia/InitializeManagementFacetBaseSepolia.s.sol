@@ -13,11 +13,13 @@ import {ChainConfig} from "../../script/ChainConfig.s.sol";
 contract InitializeManagementFacetBaseSepolia is Script {
 
     function run(
-        address diamondAddress,
-        address nftAddress,
-        address daoAddress
     ) external {
-        vm.startBroadcast();
+        address diamondAddress = vm.envAddress("DIAMOND_ADDRESS");
+        address nftAddress = vm.envAddress("NFT_ADDRESS");
+        address daoAddress = vm.envAddress("DAO_ADDRESS");
+
+        uint256 privateKey = vm.envUint("PRIVATE_KEY");
+        vm.startBroadcast(privateKey);
 
         console.log("=== Initializing ManagementFacet on Base Sepolia ===");
 

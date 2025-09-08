@@ -2,8 +2,8 @@
 pragma solidity ^0.8.20;
 
 import {LibDiamond} from "../libraries/LibDiamond.sol";
-import "../MGRO.sol";
-import "../interfaces/IMinter.sol";
+import {IMGro} from "../interfaces/IMgro.sol";
+import {IMinter} from "../interfaces/IMinter.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/utils/Strings.sol";
 import {LibXChain} from "../libraries/LibXChain.sol";
@@ -73,6 +73,13 @@ contract ManagementFacet {
         ds.mgroVerification = _address;
     }
 
+    function setDao(address _address) external {
+        require(_address != address(0), "Invalid Address");
+        LibDiamond.enforceIsContractOwner();
+        LibDiamond.DiamondStorage storage ds = LibDiamond.diamondStorage();
+        ds.dao = _address;
+    }
+
     function setMgroToken(address _mgro) external {
         LibDiamond.enforceIsContractOwner();
         LibDiamond.DiamondStorage storage ds = LibDiamond.diamondStorage();
@@ -80,24 +87,17 @@ contract ManagementFacet {
         ds.mgro = IMGro(_mgro);
     }
 
-    // Function to add base URI
-    function addBaseURI(string memory _URI) external {
+    function setMinter(address _address) external {
+        require(_address != address(0), "Invalid Address");
         LibDiamond.enforceIsContractOwner();
         LibDiamond.DiamondStorage storage ds = LibDiamond.diamondStorage();
-        require(ds.baseURIs.length < 3, "Cannot have more than 3 URIs");
-        ds.baseURIs.push(_URI);
+        ds.minter = IMinter(_address);
     }
 
     // Function to check the number of NFTs owned by a user
     function checkUserNFTs(address _user) external view returns (uint) {
         LibDiamond.DiamondStorage storage ds = LibDiamond.diamondStorage();
         return ds.userNFTs[_user].length;
-    }
-
-    // Function to check the number of base URIs
-    function checklength() external view returns (uint) {
-        LibDiamond.DiamondStorage storage ds = LibDiamond.diamondStorage();
-        return ds.baseURIs.length;
     }
 
     // Function to check minted and burnt tokens for an address
@@ -200,12 +200,9 @@ contract ManagementFacet {
     function mintNFT(address _address) external {
         LibDiamond.enforceIsContractOwner();
         LibDiamond.DiamondStorage storage ds = LibDiamond.diamondStorage();
-        require(ds.baseURIs.length > 0, "No URIs active");
         uint256 nftId = ++ds.nftCount;
-        string memory _uri = string(abi.encodePacked(ds.baseURIs[0], "1"));
         ds.userNFTs[_address].push(nftId);
         ds.minter.safeMint(_address, nftId);
-        ds.minter.updateURI(nftId, _uri);
     }
 
     function mintNFTasUser() external {
@@ -213,7 +210,6 @@ contract ManagementFacet {
 
         uint256 price = ds.nftPrice;
         if (price == 0) revert("Not yet active");
-        require(ds.baseURIs.length > 0, "No baseURI");
         require(ds.feeCollector != address(0), "Fee collector not set");
 
         require(
@@ -233,9 +229,7 @@ contract ManagementFacet {
         bool ok = ds.buyToken.transferFrom(msg.sender, ds.feeCollector, price);
         require(ok, "Token transfer failed");
 
-        string memory uri = string(abi.encodePacked(ds.baseURIs[0], "1"));
         ds.minter.safeMint(msg.sender, nftId);
-        ds.minter.updateURI(nftId, uri);
 
         emit NFTPurchased(msg.sender, nftId, price);
     }

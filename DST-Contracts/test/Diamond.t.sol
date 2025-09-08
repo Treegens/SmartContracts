@@ -70,9 +70,7 @@ contract DiamondTest is Test, IERC721Receiver {
             selectors[i++] = ManagementFacet.setFeeCollector.selector;
             selectors[i++] = ManagementFacet.setPurchaseToken.selector;
             selectors[i++] = ManagementFacet.setVerificationContract.selector;
-            selectors[i++] = ManagementFacet.addBaseURI.selector;
             selectors[i++] = ManagementFacet.checkUserNFTs.selector;
-            selectors[i++] = ManagementFacet.checklength.selector;
             selectors[i++] = ManagementFacet.checkStats.selector;
             selectors[i++] = ManagementFacet.mintMgroTokens.selector;
             selectors[i++] = ManagementFacet.burnTokens.selector;
@@ -104,20 +102,11 @@ contract DiamondTest is Test, IERC721Receiver {
         MockMessenger mockMessenger = new MockMessenger();
         mgmt.xchainSetMessenger(address(mockMessenger));
         mgmt.xchainSetDstEid(1); // mock destination endpoint ID
-
-        // add URIs
-        mgmt.addBaseURI("ipfs://A/");
-        mgmt.addBaseURI("ipfs://B/");
-        mgmt.addBaseURI("ipfs://C/");
     }
 
     function testLoupeFacetCount() public {
         address[] memory addrs = loupe.facetAddresses();
         assertEq(addrs.length, 4, "should have 4 facets including cut");
-    }
-
-    function testBaseURIsAdded() public {
-        assertEq(mgmt.checklength(), 3);
     }
 
     function testMintAndBurnMGROUpdatesStats() public {

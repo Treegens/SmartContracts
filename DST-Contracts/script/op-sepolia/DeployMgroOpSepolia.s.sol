@@ -34,11 +34,12 @@ contract DeployMgroOpSepolia is Script {
         console.log("Deployer:", deployer);
 
         // Use deterministic salt for CREATE3
-        bytes32 salt = keccak256(abi.encode("Treegens_MGRO_V1_OP_SEPOLIA"));
+        string memory saltString = vm.envString("MGRO_SALT");
+        bytes32 salt = keccak256(abi.encode(saltString));
         console.log("CREATE3 Salt:", vm.toString(salt));
 
         // Predict the deployment address
-        address predictedAddress = CREATE3.predictDeterministicAddress(salt, address(this));
+        address predictedAddress = CREATE3.predictDeterministicAddress(salt, deployer);
         console.log("Predicted MGRO address:", predictedAddress);
 
         // Create initialization code

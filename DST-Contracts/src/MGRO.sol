@@ -47,7 +47,4 @@ contract MGRO is OFT {
     }
 }
 
-interface IMGro {
-    function mintTokens(address _receiver, uint _tokens) external;
-    function burnTokens(address _address, uint tokenAmt) external;
-}
+

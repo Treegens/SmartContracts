@@ -4,6 +4,7 @@ pragma solidity ^0.8.17;
 import "forge-std/Script.sol";
 import {console} from "forge-std/console.sol";
 import {TGNDAO} from "../../src/TGNDAO.sol";
+import {IVotes} from "@openzeppelin/contracts/governance/extensions/GovernorVotes.sol";
 
 /**
  * @title DeployTGNDAOBaseSepolia
@@ -12,7 +13,8 @@ import {TGNDAO} from "../../src/TGNDAO.sol";
 contract DeployTGNDAOBaseSepolia is Script {
 
     function run() external returns (address dao_) {
-        vm.startBroadcast();
+        uint256 privateKey = vm.envUint("PRIVATE_KEY");
+        vm.startBroadcast(privateKey);
 
         console.log("=== Deploying TGNDAO on Base Sepolia ===");
 
@@ -24,14 +26,21 @@ contract DeployTGNDAOBaseSepolia is Script {
         console.log("Deployer:", deployer);
 
         // Deploy TGNDAO
-        TGNDAO dao = new TGNDAO();
+        TGNDAO dao = new TGNDAO(
+            IVotes(deployer),  // _token (must be IVotes compatible)
+            4,                // _quorumPercentage (4%)
+            1,                // _votingDelay (1 block)
+            45818             // _votingPeriod (~1 week in blocks)
+        );
         dao_ = address(dao);
 
         console.log("TGNDAO deployed at:", dao_);
 
         // Verify deployment
-        require(dao.owner() == deployer, "Owner not set correctly");
-        console.log("TGNDAO owner verified:", dao.owner());
+        // TGNDAO doesn't have an owner() function as it's a governance contract
+        // Verification is done by checking the voting token and parameters instead
+        require(address(dao.token()) == deployer, "Voting token not set correctly");
+        console.log("TGNDAO voting token verified:", address(dao.token()));
 
         console.log("=== TGNDAO Deployment Complete ===");
         console.log("TGNDAO address:", dao_);

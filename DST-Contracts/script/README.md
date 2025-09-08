@@ -42,7 +42,9 @@ Deploys the Diamond management contracts, canonical NFT, and initializes everyth
 **Usage:**
 ```bash
 cd script/base-sepolia
-./deploy_base_sepolia.sh
+./deploy_base_sepolia.sh                    # Interactive mode
+./deploy_base_sepolia.sh --dry-run         # Simulation only
+./deploy_base_sepolia.sh --auto-confirm    # Auto-confirm broadcast
 ```
 
 ### OP Sepolia (Chain ID: 11155420)
@@ -56,7 +58,9 @@ Deploys MGRO token and NFT with same address as canonical.
 **Usage:**
 ```bash
 cd script/op-sepolia
-./deploy_op_sepolia.sh
+./deploy_op_sepolia.sh                    # Interactive mode
+./deploy_op_sepolia.sh --dry-run         # Simulation only
+./deploy_op_sepolia.sh --auto-confirm    # Auto-confirm broadcast
 ```
 
 ### Ethereum Sepolia (Chain ID: 11155111)
@@ -68,7 +72,9 @@ Deploys TreegenNFT with same address as canonical.
 **Usage:**
 ```bash
 cd script/eth-sepolia
-./deploy_eth_sepolia.sh
+./deploy_eth_sepolia.sh                    # Interactive mode
+./deploy_eth_sepolia.sh --dry-run         # Simulation only
+./deploy_eth_sepolia.sh --auto-confirm    # Auto-confirm broadcast
 ```
 
 ### Complete Multi-Network Deployment
@@ -79,10 +85,13 @@ Deploys all contracts across all networks with proper initialization and peer se
 - ManagementFacet initialization with correct parameters
 - Peer setup and enforced options configuration
 - Gas limit configuration (BaseMgroOapp: 30000, CeloMgroOapp: 150000, OFT/ONFT: 200000)
+- Simulation and broadcast modes with confirmation
 
 **Usage:**
 ```bash
-./script/full_deployment.sh
+./script/full_deployment.sh                    # Interactive mode
+./script/full_deployment.sh --dry-run         # Simulation only
+./script/full_deployment.sh --auto-confirm    # Auto-confirm broadcast
 ```
 
 ## Environment Variables
@@ -105,6 +114,8 @@ export ETHERSCAN_API_KEY="your_etherscan_api_key"
 - **Address Export**: Deployed addresses are exported for reuse
 - **Cross-chain Setup**: Automatic peer configuration with enforced options
 - **Gas Limit Configuration**: Pre-configured gas limits for different contract types
+- **Simulation & Broadcast Modes**: Choose between dry-run simulation or actual deployment
+- **Interactive Confirmation**: Manual confirmation before broadcasting transactions
 
 ## Contract Addresses
 

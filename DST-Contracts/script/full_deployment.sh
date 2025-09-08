@@ -5,6 +5,31 @@
 
 set -e
 
+source .env
+# Parse command line arguments
+DRY_RUN=false
+AUTO_CONFIRM=false
+
+while [[ $# -gt 0 ]]; do
+    case $1 in
+        --dry-run)
+            DRY_RUN=true
+            shift
+            ;;
+        --auto-confirm)
+            AUTO_CONFIRM=true
+            shift
+            ;;
+        *)
+            # If it's not a flag, treat it as PRIVATE_KEY
+            if [[ -z "$PRIVATE_KEY" ]]; then
+                PRIVATE_KEY="$1"
+            fi
+            shift
+            ;;
+    esac
+done
+
 echo "=== Complete Multi-Network Deployment ==="
 echo "Deploying contracts on Base Sepolia, OP Sepolia, and Ethereum Sepolia..."
 
@@ -18,6 +43,8 @@ if [ -z "$PRIVATE_KEY" ]; then
     echo "Error: PRIVATE_KEY not set. Please set PRIVATE_KEY or pass it as first argument"
     exit 1
 fi
+
+echo "Mode: $(if $DRY_RUN; then echo 'DRY RUN (Simulation Only)'; else echo 'BROADCAST'; fi)"
 
 # Colors for output
 RED='\033[0;31m'
@@ -39,16 +66,48 @@ run_forge_script() {
 
     echo -e "${YELLOW}Running $script_name...${NC}"
 
-    if forge script $script_path \
-        --rpc-url $rpc_url \
-        --private-key $PRIVATE_KEY \
-        --broadcast \
-        --verify \
-        -vvvv; then
-        echo -e "${GREEN}✓ $script_name completed successfully${NC}"
+    if $DRY_RUN; then
+        echo -e "${BLUE}Running simulation for $script_name...${NC}"
+        if forge script $script_path \
+            --rpc-url $rpc_url \
+            --private-key $PRIVATE_KEY \
+            -vvvv; then
+            echo -e "${GREEN}✓ $script_name simulation successful${NC}"
+            return 0
+        else
+            echo -e "${RED}✗ $script_name simulation failed${NC}"
+            return 1
+        fi
     else
-        echo -e "${RED}✗ $script_name failed${NC}"
-        exit 1
+        if $AUTO_CONFIRM; then
+            echo -e "${YELLOW}Auto-confirming broadcast for $script_name...${NC}"
+            broadcast=true
+        else
+            echo -e "${YELLOW}Simulation successful. Broadcast transaction? (y/N)${NC}"
+            read -r -n 1 response
+            echo
+            if [[ "$response" =~ ^[Yy]$ ]]; then
+                broadcast=true
+            else
+                echo -e "${YELLOW}Broadcast cancelled${NC}"
+                return 0
+            fi
+        fi
+
+        if $broadcast; then
+            if forge script $script_path \
+                --rpc-url $rpc_url \
+                --private-key $PRIVATE_KEY \
+                --broadcast \
+                --verify \
+                -vvvv; then
+                echo -e "${GREEN}✓ $script_name broadcast successful${NC}"
+                return 0
+            else
+                echo -e "${RED}✗ $script_name broadcast failed${NC}"
+                return 1
+            fi
+        fi
     fi
 }
 
@@ -81,12 +140,12 @@ DAO_ADDRESS=$(extract_address "$DAO_OUTPUT" "TGNDAO deployed at:")
 echo "TGNDAO Address: $DAO_ADDRESS"
 
 echo -e "${YELLOW}Step 1.4: Deploying BaseMgroOapp...${NC}"
-MESSENGER_OUTPUT=$(run_forge_script "DeployBaseMessengerBaseSepolia.s.sol" "$BASE_SEPOLIA_RPC")
+MESSENGER_OUTPUT=$(run_forge_script "script/base-sepolia/DeployBaseMessengerBaseSepolia.s.sol:DeployBaseMessengerBaseSepolia" "$BASE_SEPOLIA_RPC" "--sig run(address) $DIAMOND_ADDRESS")
 MESSENGER_ADDRESS=$(extract_address "$MESSENGER_OUTPUT" "BaseMgroOapp deployed at:")
 echo "Messenger Address: $MESSENGER_ADDRESS"
 
 echo -e "${YELLOW}Step 1.5: Initializing ManagementFacet...${NC}"
-run_forge_script "InitializeManagementFacetBaseSepolia.s.sol --sig 'run(address,address,address)' $DIAMOND_ADDRESS $NFT_ADDRESS $DAO_ADDRESS" "$BASE_SEPOLIA_RPC"
+run_forge_script "script/base-sepolia/InitializeManagementFacetBaseSepolia.s.sol:InitializeManagementFacetBaseSepolia" "$BASE_SEPOLIA_RPC" "--sig run(address,address,address) $DIAMOND_ADDRESS $NFT_ADDRESS $DAO_ADDRESS"
 
 cd ../..
 
@@ -127,13 +186,13 @@ echo -e "${BLUE}=== PHASE 4: Peer Setup ===${NC}"
 # Setup peers on Base Sepolia
 echo -e "${YELLOW}Step 4.1: Setting up Base Sepolia peers...${NC}"
 cd script/base-sepolia
-run_forge_script "SetupPeersBaseSepolia.s.sol --sig 'run(address,address,address,address)' $MESSENGER_ADDRESS $NFT_ADDRESS $MGRO_ADDRESS $OP_NFT_ADDRESS" "$BASE_SEPOLIA_RPC"
+run_forge_script "script/base-sepolia/SetupPeersBaseSepolia.s.sol:SetupPeersBaseSepolia" "$BASE_SEPOLIA_RPC" "--sig run(address,address,address,address) $MESSENGER_ADDRESS $NFT_ADDRESS $MGRO_ADDRESS $OP_NFT_ADDRESS"
 cd ../..
 
 # Setup peers on OP Sepolia
 echo -e "${YELLOW}Step 4.2: Setting up OP Sepolia peers...${NC}"
 cd script/op-sepolia
-run_forge_script "SetupPeersOpSepolia.s.sol --sig 'run(address,address,address,address)' $MGRO_ADDRESS $OP_NFT_ADDRESS $MESSENGER_ADDRESS $NFT_ADDRESS" "$OP_SEPOLIA_RPC"
+run_forge_script "script/op-sepolia/SetupPeersOpSepolia.s.sol:SetupPeersOpSepolia" "$OP_SEPOLIA_RPC" "--sig run(address,address,address,address) $MGRO_ADDRESS $OP_NFT_ADDRESS $MESSENGER_ADDRESS $NFT_ADDRESS"
 cd ../..
 
 echo ""

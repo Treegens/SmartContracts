@@ -7,6 +7,7 @@ import "@openzeppelin/contracts/token/ERC721/IERC721.sol";
 import "@openzeppelin/contracts/interfaces/IERC4906.sol";
 import "@openzeppelin/contracts/interfaces/IERC165.sol";
 import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
+import "@openzeppelin/contracts/utils/Strings.sol";
 
 contract TreegenNFT is ONFT721, IERC4906 {
     string private _defaultURI;
@@ -52,13 +53,19 @@ contract TreegenNFT is ONFT721, IERC4906 {
         management = _address;
     }
 
+    function setDefaultURI(string memory _newDefaultURI) public onlyOwner {
+        _defaultURI = _newDefaultURI;
+    }
+
     function safeMint(address to, uint256 tokenId) public onlyManagement {
         _safeMint(to, tokenId);
+        _setTokenURI(tokenId, string(abi.encodePacked(_defaultURI, Strings.toString(tokenId))));
         _addTokenToOwnerEnumeration(to, tokenId);
     }
-    
-    function updateURI(uint256 tokenId, string memory uri) external onlyNFTUpdater {
-        _setTokenURI(tokenId, uri);
+
+    function updateURI(uint256 tokenId) external onlyNFTUpdater {
+        string memory _uri = string(abi.encodePacked(_defaultURI, Strings.toString(tokenId)));
+        _setTokenURI(tokenId, _uri);
     }
 
     /**
@@ -77,6 +84,16 @@ contract TreegenNFT is ONFT721, IERC4906 {
         
         for (uint256 i = 0; i < tokens.length; i++) {
             _setTokenURI(tokens[i], uris[i]);
+        }
+    }
+
+    function metadataUpdate(uint256 tokenId) external onlyNFTUpdater {
+        emit MetadataUpdate(tokenId);
+    }
+
+    function batchMetadataUpdate(uint256[] memory tokenIds) external onlyNFTUpdater {
+        for (uint256 i = 0; i < tokenIds.length; i++) {
+            emit MetadataUpdate(tokenIds[i]);
         }
     }
 
@@ -99,8 +116,6 @@ contract TreegenNFT is ONFT721, IERC4906 {
         _removeTokenFromOwnerEnumeration(from, tokenId);
         super.transferFrom(from, to, tokenId);
         _addTokenToOwnerEnumeration(to, tokenId);
-        string memory _uri = string(abi.encodePacked(_defaultURI, '1'));
-        _setTokenURI(tokenId, _uri);
     }
 
     function safeTransferFrom(
@@ -112,8 +127,6 @@ contract TreegenNFT is ONFT721, IERC4906 {
         _removeTokenFromOwnerEnumeration(from, tokenId);
         super.safeTransferFrom(from, to, tokenId, data);
         _addTokenToOwnerEnumeration(to, tokenId);
-        string memory _uri = string(abi.encodePacked(_defaultURI, '1'));
-        _setTokenURI(tokenId, _uri);
     }
 
     function tokenURI(uint256 tokenId)
@@ -125,18 +138,14 @@ contract TreegenNFT is ONFT721, IERC4906 {
         _requireOwned(tokenId);
 
         string memory _tokenURI = _tokenURIs[tokenId];
-        string memory base = _baseURI();
-
-        // If there is no base URI, return the token URI.
-        if (bytes(base).length == 0) {
+        
+        // If there is a custom token URI, return it
+        if (bytes(_tokenURI).length > 0) {
             return _tokenURI;
         }
-        // If both are set, concatenate the baseURI and tokenURI (via string.concat).
-        if (bytes(_tokenURI).length > 0) {
-            return string.concat(base, _tokenURI);
-        }
-
-        return super.tokenURI(tokenId);
+        
+        // Otherwise, return defaultURI + tokenId
+        return string(abi.encodePacked(_defaultURI, Strings.toString(tokenId)));
     }
 
     function supportsInterface(bytes4 interfaceId)

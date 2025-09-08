@@ -11,8 +11,8 @@ if [[ -z "${RPC_API_KEY:-}" ]]; then
   echo "RPC_API_KEY is required" >&2
   exit 1
 fi
-if [[ -z "${TESTNET_PRIVATE_KEY:-}" ]]; then
-  echo "TESTNET_PRIVATE_KEY is required" >&2
+if [[ -z "${PRIVATE_KEY:-}" ]]; then
+  echo "PRIVATE_KEY is required" >&2
   exit 1
 fi
 
@@ -42,14 +42,14 @@ if [[ -n "${MANAGEMENT_ADDRESS:-}" && -z "${MESSENGER_ADDRESS:-}" ]]; then
   echo "[deploy_base] Deploying BaseMgroOapp for management=$MANAGEMENT_ADDRESS"
   forge script script/DeployMessenger.s.sol:DeployMessenger \
     --rpc-url "$RPC_ALIAS" \
-    --private-key "$TESTNET_PRIVATE_KEY" \
+    --private-key "$PRIVATE_KEY" \
     --broadcast --verify -vvvv
 fi
 
 # Run the FullSetup script directly
 forge script script/FullSetup.s.sol:FullSetup \
   --rpc-url "$RPC_ALIAS" \
-  --private-key "$TESTNET_PRIVATE_KEY" \
+  --private-key "$PRIVATE_KEY" \
   --broadcast --verify -vvvv
 
 echo "[deploy_base] FullSetup deployment completed on $CHAIN_NAME"

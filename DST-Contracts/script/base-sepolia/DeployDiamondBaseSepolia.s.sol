@@ -19,7 +19,8 @@ import {ChainConfig} from "../../script/ChainConfig.s.sol";
 contract DeployDiamondBaseSepolia is Script {
 
     function run() external returns (address diamond_) {
-        vm.startBroadcast();
+        uint256 privateKey = vm.envUint("PRIVATE_KEY");
+        vm.startBroadcast(privateKey);
 
         console.log("=== Deploying Diamond on Base Sepolia ===");
 
@@ -89,9 +90,7 @@ contract DeployDiamondBaseSepolia is Script {
             selectors[i++] = ManagementFacet.setPurchaseToken.selector;
             selectors[i++] = ManagementFacet.setVerificationContract.selector;
             selectors[i++] = ManagementFacet.setMgroToken.selector;
-            selectors[i++] = ManagementFacet.addBaseURI.selector;
             selectors[i++] = ManagementFacet.checkUserNFTs.selector;
-            selectors[i++] = ManagementFacet.checklength.selector;
             selectors[i++] = ManagementFacet.checkStats.selector;
             selectors[i++] = ManagementFacet.mintMgroTokens.selector;
             selectors[i++] = ManagementFacet.burnTokens.selector;

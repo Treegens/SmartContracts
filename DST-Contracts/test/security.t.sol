@@ -87,9 +87,7 @@ contract SecurityAuditTest is Test {
             selectors[i++] = ManagementFacet.setFeeCollector.selector;
             selectors[i++] = ManagementFacet.setPurchaseToken.selector;
             selectors[i++] = ManagementFacet.setVerificationContract.selector;
-            selectors[i++] = ManagementFacet.addBaseURI.selector;
             selectors[i++] = ManagementFacet.checkUserNFTs.selector;
-            selectors[i++] = ManagementFacet.checklength.selector;
             selectors[i++] = ManagementFacet.checkStats.selector;
             selectors[i++] = ManagementFacet.mintMgroTokens.selector;
             selectors[i++] = ManagementFacet.burnTokens.selector;
@@ -121,7 +119,6 @@ contract SecurityAuditTest is Test {
         
         // Setup cross-chain (but keep messenger unset for some tests)
         messenger = new BaseMgroOapp(address(lzEndpoint), deployer, diamondAddr);
-        mgmt.addBaseURI("ipfs://base/");
         
         // Fund test accounts
         vm.deal(attacker, 10 ether);

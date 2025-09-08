@@ -15,13 +15,13 @@ contract DeployCeloOapp is Script {
         
         vm.startBroadcast();
         address endpoint = ChainConfig.testnetLzInfo(block.chainid).endpoint;
-        address mgro = 0x26B49e5DfCaCE2463b21f99947524A04a9826Ed8;
+        address mgro = vm.envAddress("MGRO_ADDRESS");
 
         CeloMgroOapp oapp = new CeloMgroOapp(endpoint, msg.sender, mgro);
         console.log("CeloMgroOapp deployed at:", address(oapp));
 
-        // MGRO(mgro).setManagementContract(address(oapp));
-        // console.log("MGRO management set to CeloMgroOapp:", address(MGRO(mgro).management()));
+        MGRO(mgro).setManagementContract(address(oapp));
+        console.log("MGRO management set to CeloMgroOapp:", address(MGRO(mgro).management()));
 
         (bool success, ) = address(oapp).call{value: 0.001 ether}("");
         require(success, "Failed to send ETH to oapp");

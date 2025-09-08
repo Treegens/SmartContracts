@@ -5,6 +5,7 @@ import "forge-std/Script.sol";
 import {console} from "forge-std/console.sol";
 import {BaseMgroOapp} from "../../src/bridge/BaseMgroOapp.sol";
 import {ChainConfig} from "../../script/ChainConfig.s.sol";
+import {ManagementFacet} from "../../src/facets/ManagementFacet.sol";
 
 /**
  * @title DeployBaseMessengerBaseSepolia
@@ -12,8 +13,13 @@ import {ChainConfig} from "../../script/ChainConfig.s.sol";
  */
 contract DeployBaseMessengerBaseSepolia is Script {
 
-    function run(address diamondAddress) external returns (address messenger_) {
-        vm.startBroadcast();
+    function run() external returns (address messenger_) {
+
+        address diamondAddress = vm.envAddress("DIAMOND_ADDRESS");
+        ManagementFacet mgmt = ManagementFacet(diamondAddress);
+        uint256 privateKey = vm.envUint("PRIVATE_KEY");
+        address deployer = vm.addr(privateKey);
+        vm.startBroadcast(privateKey);
 
         console.log("=== Deploying BaseMgroOapp on Base Sepolia ===");
 
@@ -30,7 +36,6 @@ contract DeployBaseMessengerBaseSepolia is Script {
         console.log("Diamond address:", diamondAddress);
 
         // Get deployer address
-        address deployer = msg.sender;
         console.log("Deployer:", deployer);
 
         // Deploy BaseMgroOapp
@@ -57,6 +62,9 @@ contract DeployBaseMessengerBaseSepolia is Script {
         console.log("BaseMgroOapp address:", messenger_);
         console.log("Chain ID:", block.chainid);
         console.log("Role: BASE_MESSENGER");
+
+        mgmt.xchainSetMessenger(address(messenger));
+        mgmt.xchainSetDstEid(dstEid);
 
         vm.stopBroadcast();
 

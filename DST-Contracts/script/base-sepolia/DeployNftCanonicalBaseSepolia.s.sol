@@ -14,7 +14,8 @@ import {CREATE3} from "../../lib/solady/src/utils/CREATE3.sol";
 contract DeployNftCanonicalBaseSepolia is Script {
 
     function run() external returns (address nft_) {
-        vm.startBroadcast();
+        uint256 privateKey = vm.envUint("PRIVATE_KEY");
+        vm.startBroadcast(privateKey);
 
         console.log("=== Deploying TreegenNFT Canonical on Base Sepolia ===");
 
@@ -26,14 +27,15 @@ contract DeployNftCanonicalBaseSepolia is Script {
         console.log("Deployer:", deployer);
 
         // Use deterministic salt for CREATE3 - same salt will be used on OP Sepolia
-        bytes32 salt = keccak256(abi.encode("Treegens_NFT_V1_CANONICAL"));
+        string memory saltString = vm.envString("NFT_SALT");
+        bytes32 salt = keccak256(abi.encode(saltString));
         console.log("CREATE3 Salt:", vm.toString(salt));
 
         // Use the default URI from ChainConfig
         string memory defaultURI = ChainConfig.BASE_URI_A;
 
         // Predict the deployment address
-        address predictedAddress = CREATE3.predictDeterministicAddress(salt, address(this));
+        address predictedAddress = CREATE3.predictDeterministicAddress(salt, msg.sender);
         console.log("Predicted NFT address:", predictedAddress);
 
         // Get LayerZero endpoint for Base Sepolia

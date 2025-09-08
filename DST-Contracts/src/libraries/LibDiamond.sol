@@ -7,8 +7,8 @@ pragma solidity ^0.8.20;
 /******************************************************************************/
 import { IDiamondCut } from "../interfaces/IDiamondCut.sol";
 
-import "../MGRO.sol";
-import "../interfaces/IMinter.sol";
+import {IMGro} from "../interfaces/IMgro.sol";
+import {IMinter} from "../interfaces/IMinter.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
 

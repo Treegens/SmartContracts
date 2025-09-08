@@ -5,6 +5,7 @@ import {ONFT721} from "@layerzerolabs/onft-evm/contracts/onft721/ONFT721.sol";
 import "@openzeppelin/contracts/interfaces/IERC4906.sol";
 import "@openzeppelin/contracts/interfaces/IERC165.sol";
 import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
+import "@openzeppelin/contracts/utils/Strings.sol";
 
 contract TreegenNFT is ONFT721, IERC4906 {
     address public nftUpdater;
@@ -40,11 +41,20 @@ contract TreegenNFT is ONFT721, IERC4906 {
         nftUpdater = _address;
     }
 
+    function setDefaultURI(string memory _newDefaultURI) public onlyOwner {
+        _defaultURI = _newDefaultURI;
+    }
+
     function updateURI(
         uint256 tokenId,
         string memory uri
     ) external onlyNFTUpdater {
         _setTokenURI(tokenId, uri);
+    }
+
+    function updateURI(uint256 tokenId) external onlyNFTUpdater {
+        string memory _uri = string(abi.encodePacked(_defaultURI, Strings.toString(tokenId)));
+        _setTokenURI(tokenId, _uri);
     }
 
     /**
@@ -75,6 +85,16 @@ contract TreegenNFT is ONFT721, IERC4906 {
         
         _setTokenURI(tokens[index], uri);
     }
+
+    function metadataUpdate(uint256 tokenId) external onlyNFTUpdater {
+        emit MetadataUpdate(tokenId);
+    }
+
+    function batchMetadataUpdate(uint256[] memory tokenIds) external onlyNFTUpdater {
+        for (uint256 i = 0; i < tokenIds.length; i++) {
+            emit MetadataUpdate(tokenIds[i]);
+        }
+    }
     
     function _setTokenURI(uint256 tokenId, string memory _tokenURI) internal {
         _tokenURIs[tokenId] = _tokenURI;
@@ -96,18 +116,14 @@ contract TreegenNFT is ONFT721, IERC4906 {
         _requireOwned(tokenId);
 
         string memory _tokenURI = _tokenURIs[tokenId];
-        string memory base = _baseURI();
-
-        // If there is no base URI, return the token URI.
-        if (bytes(base).length == 0) {
+        
+        // If there is a custom token URI, return it
+        if (bytes(_tokenURI).length > 0) {
             return _tokenURI;
         }
-        // If both are set, concatenate the baseURI and tokenURI (via string.concat).
-        if (bytes(_tokenURI).length > 0) {
-            return string.concat(base, _tokenURI);
-        }
-
-        return super.tokenURI(tokenId);
+        
+        // Otherwise, return defaultURI + tokenId
+        return string(abi.encodePacked(_defaultURI, Strings.toString(tokenId)));
     }
 
     /**

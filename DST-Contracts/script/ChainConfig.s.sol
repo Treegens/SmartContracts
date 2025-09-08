@@ -3,7 +3,7 @@ pragma solidity ^0.8.17;
 
 library ChainConfig {
 	// Default IPFS base URIs
-	string internal constant BASE_URI_A = "ipfs://QmW3h5dB7yKyacNDfo1XCjjWV5zFyeDZfeVYcpYbx1xuNP/";
+	string internal constant BASE_URI_A = "ipfs://QmPJDasQGQvJu22nokBUNpybUQbYM6dwfwD6zEHE5oWxcv/";
 	string internal constant BASE_URI_B = "ipfs://Qmbza7VprgNZ8eWzjRFWBaZUj11tZ2kEHVA6VUZGnsGVtu/";
 	string internal constant BASE_URI_C = "ipfs://QmaHhmm9bwJSF95NDwqyFiCX3LPDi7g6vY2zNXxQuDqgXe/";
 
@@ -12,7 +12,7 @@ library ChainConfig {
 		// Base Sepolia USDC
 		if (chainId == 84532) return 0x036CbD53842c5426634e7929541eC2318f3dCF7e;
 		// OP Sepolia USDC
-		if (chainId == 11155420) return 0x5dEaC602762362FE5f135Fa5904351916CA540D95;
+		// if (chainId == 11155420) return 0x5dEaC602762362FE5f135Fa5904351916CA540D95;
 		// Ethereum Sepolia USDC
 		if (chainId == 11155111) return 0x1c7D4B196Cb0C7B01d743Fbc6116a902379C7238;
 		return address(0);

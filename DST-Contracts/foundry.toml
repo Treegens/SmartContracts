@@ -17,6 +17,7 @@ remappings = [
 verifier = "sourcify"
 
 [rpc_endpoints]
+sepolia = "https://eth-sepolia.g.alchemy.com/v2/${RPC_API_KEY}"
 base_sepolia = "https://sepolia.base.org"
 op_sepolia = "https://sepolia.optimism.io"
 base = "https://base-mainnet.g.alchemy.com/v2/${RPC_API_KEY}"
