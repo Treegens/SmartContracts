@@ -35,7 +35,7 @@ contract DiamondTest is Test, IERC721Receiver {
         // external contracts
         MockLzEndpointV2 lzEndpoint = new MockLzEndpointV2();
         mgro = new MGRO(address(lzEndpoint), deployer);
-        nft = new TreegenNFT("Treegen", "TGN", "example://uri", address(lzEndpoint), deployer);
+        nft = new TreegenNFT("Treegen", "TGN", "example://uri", address(lzEndpoint), deployer, address(mgmt), address(0));
 
         // diamond base
         DiamondCutFacet cut = new DiamondCutFacet();

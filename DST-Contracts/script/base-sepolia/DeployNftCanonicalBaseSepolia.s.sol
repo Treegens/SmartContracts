@@ -14,6 +14,8 @@ import {CREATE3} from "../../lib/solady/src/utils/CREATE3.sol";
 contract DeployNftCanonicalBaseSepolia is Script {
 
     function run() external returns (address nft_) {
+        address management = vm.envAddress("DIAMOND_ADDRESS");
+        address nftUpdater = address(0);
         uint256 privateKey = vm.envUint("PRIVATE_KEY");
         vm.startBroadcast(privateKey);
 
@@ -32,7 +34,7 @@ contract DeployNftCanonicalBaseSepolia is Script {
         console.log("CREATE3 Salt:", vm.toString(salt));
 
         // Use the default URI from ChainConfig
-        string memory defaultURI = ChainConfig.BASE_URI_A;
+        string memory defaultURI = "https://nft.treegens.org/meta/";
 
         // Predict the deployment address
         address predictedAddress = CREATE3.predictDeterministicAddress(salt, msg.sender);
@@ -44,7 +46,7 @@ contract DeployNftCanonicalBaseSepolia is Script {
         // Create initialization code with correct constructor parameters
         bytes memory initCode = abi.encodePacked(
             type(TreegenNFT).creationCode,
-            abi.encode("Treegen", "TGN", defaultURI, info.endpoint, deployer)
+            abi.encode("Treegen", "TGN", defaultURI, info.endpoint, deployer, management, nftUpdater)
         );
 
         // Deploy using CREATE3

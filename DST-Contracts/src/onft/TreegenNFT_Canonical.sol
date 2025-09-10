@@ -38,9 +38,13 @@ contract TreegenNFT is ONFT721, IERC4906 {
         string memory _symbol,
         string memory defaultURI_,
         address _lzEndpoint,
-        address _delegate
+        address _delegate,
+        address _management,
+        address _nftUpdater
     ) ONFT721(_name, _symbol, _lzEndpoint, _delegate){
         _defaultURI = defaultURI_;
+        management = _management;
+        nftUpdater = _nftUpdater;
     }
 
     function setNFTUpdater(address _address) public onlyOwner {
@@ -155,6 +159,14 @@ contract TreegenNFT is ONFT721, IERC4906 {
         returns (bool)
     {
         return interfaceId == bytes4(0x49064906) || super.supportsInterface(interfaceId);
+    }
+
+    /**
+     * @dev Returns the maximum total supply of tokens
+     * @return The maximum supply of tokens
+     */
+    function totalSupply() public pure returns (uint256) {
+        return 1000; // MAX_SUPPLY from ManagementFacet
     }
 
     /**

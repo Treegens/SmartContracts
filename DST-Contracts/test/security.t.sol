@@ -39,7 +39,7 @@ contract SecurityAuditTest is Test {
         // Deploy infrastructure
         lzEndpoint = new MockLzEndpointV2();
         mgro = new MGRO(address(lzEndpoint), deployer);
-        nft = new TreegenNFT("Treegen", "TGN", "ipfs://base/", address(lzEndpoint), deployer);
+        nft = new TreegenNFT("Treegen", "TGN", "ipfs://base/", address(lzEndpoint), deployer, address(mgmt), address(0));
         
         // Deploy Diamond
         DiamondCutFacet cut = new DiamondCutFacet();

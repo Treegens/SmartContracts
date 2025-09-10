@@ -3,7 +3,7 @@ pragma solidity ^0.8.17;
 
 import "forge-std/Script.sol";
 import {console} from "forge-std/console.sol";
-import {TreegenNFT} from "../../src/onft/TreegenNFT_Canonical.sol";
+import {TreegenNFT} from "../../src/onft/TreegenNFT.sol";
 import {ChainConfig} from "../../script/ChainConfig.s.sol";
 import {CREATE3} from "../../lib/solady/src/utils/CREATE3.sol";
 
@@ -15,6 +15,7 @@ import {CREATE3} from "../../lib/solady/src/utils/CREATE3.sol";
 contract DeployNftEthSepolia is Script {
 
     function run() external returns (address nft_) {
+        address nftUpdater = address(0);
         uint256 privateKey = vm.envUint("PRIVATE_KEY");
         vm.startBroadcast(privateKey);
 
@@ -33,7 +34,7 @@ contract DeployNftEthSepolia is Script {
         console.log("CREATE3 Salt (same as canonical):", vm.toString(salt));
 
         // Use the default URI from ChainConfig
-        string memory defaultURI = ChainConfig.BASE_URI_A;
+        string memory defaultURI = "https://nft.treegens.org/meta/";
 
         // Predict the deployment address (should be same as canonical)
         address predictedAddress = CREATE3.predictDeterministicAddress(salt, deployer);
@@ -46,7 +47,7 @@ contract DeployNftEthSepolia is Script {
         // Create initialization code with correct constructor parameters
         bytes memory initCode = abi.encodePacked(
             type(TreegenNFT).creationCode,
-            abi.encode("Treegen", "TGN", defaultURI, info.endpoint, deployer)
+            abi.encode("Treegen", "TGN", defaultURI, info.endpoint, deployer, nftUpdater)
         );
 
         // Deploy using CREATE3

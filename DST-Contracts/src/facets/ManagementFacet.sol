@@ -11,6 +11,11 @@ import {IBaseMgroOapp} from "../interfaces/IBaseMgroOapp.sol";
 
 contract ManagementFacet {
     /* ------------------------------------------------------------------------
+       CONSTANTS
+    --------------------------------------------------------------------------*/
+    uint256 public constant MAX_NFT_SUPPLY = 1000;
+
+    /* ------------------------------------------------------------------------
        EVENTS
     --------------------------------------------------------------------------*/
     event LogImgNo(uint256 imgNo);
@@ -197,9 +202,19 @@ contract ManagementFacet {
         return LibXChain.getDstEid();
     }
 
+    /**
+     * @dev Returns the total number of NFTs minted
+     * @return The total supply of NFTs
+     */
+    function totalSupply() external view returns (uint256) {
+        LibDiamond.DiamondStorage storage ds = LibDiamond.diamondStorage();
+        return ds.nftCount;
+    }
+
     function mintNFT(address _address) external {
         LibDiamond.enforceIsContractOwner();
         LibDiamond.DiamondStorage storage ds = LibDiamond.diamondStorage();
+        require(ds.nftCount < MAX_NFT_SUPPLY, "Max NFT supply reached");
         uint256 nftId = ++ds.nftCount;
         ds.userNFTs[_address].push(nftId);
         ds.minter.safeMint(_address, nftId);
@@ -207,7 +222,8 @@ contract ManagementFacet {
 
     function mintNFTasUser() external {
         LibDiamond.DiamondStorage storage ds = LibDiamond.diamondStorage();
-
+        
+        require(ds.nftCount < MAX_NFT_SUPPLY, "Max NFT supply reached");
         uint256 price = ds.nftPrice;
         if (price == 0) revert("Not yet active");
         require(ds.feeCollector != address(0), "Fee collector not set");
