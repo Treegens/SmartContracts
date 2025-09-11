@@ -26,7 +26,7 @@ contract MintMgro is Script {
         MessagingFee memory fee = BaseMgroOapp(messenger).quoteMint(
             dstEid, 
             msg.sender, 
-            101,
+            1012,
             false
         );
         console.log("Quote:", fee.nativeFee);

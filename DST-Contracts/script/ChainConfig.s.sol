@@ -48,6 +48,40 @@ library ChainConfig {
 		return mainnetLzInfo(chainId);
 	}
 
+	// ---------------- DVN CONFIG (Testnet only) ----------------
+	struct DvnConfig { address lz; address nethermind; uint8 optionalThreshold; uint64 confirmations; }
+
+	function testnetDvnConfig(uint256 chainId) internal pure returns (DvnConfig memory cfg) {
+		// 1-of-2 quorum: LayerZero Labs + Nethermind; 1 confirmation
+		if (chainId == 84532) {
+			// Base Sepolia
+			return DvnConfig({
+				lz: 0xe1a12515F9AB2764b887bF60B923Ca494EBbB2d6,
+				nethermind: 0xd9222CC3Ccd1DF7c070d700EA377D4aDA2B86Eb5,
+				optionalThreshold: 1,
+				confirmations: 1
+			});
+		}
+		if (chainId == 11155420) {
+			// OP Sepolia
+			return DvnConfig({
+				lz: 0xd680ec569f269aa7015F7979b4f1239b5aa4582C,
+				nethermind: 0x2d15d4e61558480A9300632772E68d8b5e7Cc7e5,
+				optionalThreshold: 1,
+				confirmations: 1
+			});
+		}
+		if (chainId == 11155111) {
+			// Ethereum Sepolia
+			return DvnConfig({
+				lz: 0x8eebf8b423B73bFCa51a1Db4B7354AA0bFCA9193,
+				nethermind: 0x68802e01D6321D5159208478f297d7007A7516Ed,
+				optionalThreshold: 1,
+				confirmations: 1
+			});
+		}
+	}
+
 	function partnerEid(uint256 chainId) internal pure returns (uint32) {
 		// For diamond on Base, partner is MGRO on OP (testnet) or Celo (mainnet)
 		if (chainId == 84532) return 40232; // base sepolia -> op sepolia
