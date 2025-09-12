@@ -25,7 +25,7 @@ contract DeployNftCanonicalBaseSepolia is Script {
         require(block.chainid == 84532, "Must be deployed on Base Sepolia");
 
         // Get deployer address
-        address deployer = msg.sender;
+        address deployer = vm.addr(privateKey);
         console.log("Deployer:", deployer);
 
         // Use deterministic salt for CREATE3 - same salt will be used on OP Sepolia
@@ -37,7 +37,7 @@ contract DeployNftCanonicalBaseSepolia is Script {
         string memory defaultURI = "https://nft.treegens.org/meta/";
 
         // Predict the deployment address
-        address predictedAddress = CREATE3.predictDeterministicAddress(salt, msg.sender);
+        address predictedAddress = CREATE3.predictDeterministicAddress(salt, deployer);
         console.log("Predicted NFT address:", predictedAddress);
 
         // Get LayerZero endpoint for Base Sepolia

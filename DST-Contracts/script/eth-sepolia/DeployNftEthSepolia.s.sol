@@ -25,7 +25,7 @@ contract DeployNftEthSepolia is Script {
         require(block.chainid == 11155111, "Must be deployed on Ethereum Sepolia");
 
         // Get deployer address
-        address deployer = msg.sender;
+        address deployer = vm.addr(privateKey);
         console.log("Deployer:", deployer);
 
         // Use the SAME salt as canonical deployment for deterministic address

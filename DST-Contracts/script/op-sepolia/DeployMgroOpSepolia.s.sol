@@ -14,6 +14,7 @@ import {CREATE3} from "../../lib/solady/src/utils/CREATE3.sol";
 contract DeployMgroOpSepolia is Script {
 
     function run() external returns (address mgro_) {
+        uint256 privateKey = vm.envUint("PRIVATE_KEY");
         vm.startBroadcast();
 
         console.log("=== Deploying MGRO on OP Sepolia ===");
@@ -30,7 +31,7 @@ contract DeployMgroOpSepolia is Script {
         console.log("LZ EID:", info.eid);
 
         // Get deployer address
-        address deployer = msg.sender;
+        address deployer = vm.envAddress(privateKey);
         console.log("Deployer:", deployer);
 
         // Use deterministic salt for CREATE3

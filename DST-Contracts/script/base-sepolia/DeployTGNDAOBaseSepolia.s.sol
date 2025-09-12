@@ -22,7 +22,7 @@ contract DeployTGNDAOBaseSepolia is Script {
         require(block.chainid == 84532, "Must be deployed on Base Sepolia");
 
         // Get deployer address
-        address deployer = msg.sender;
+        address deployer = vm.addr(privateKey);
         console.log("Deployer:", deployer);
 
         // Deploy TGNDAO

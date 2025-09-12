@@ -12,12 +12,14 @@ import {OptionsBuilder} from "@layerzerolabs/oapp-evm/contracts/oapp/libs/Option
 contract DeployCeloOapp is Script {
     using OptionsBuilder for bytes;
     function run() external {
-        
-        vm.startBroadcast();
+        uint256 privateKey = vm.envUint("PRIVATE_KEY");
+        address deployer = vm.envAddress(privateKey);
+        vm.startBroadcast(privateKey);
         address endpoint = ChainConfig.testnetLzInfo(block.chainid).endpoint;
         address mgro = vm.envAddress("MGRO_ADDRESS");
 
-        CeloMgroOapp oapp = new CeloMgroOapp(endpoint, msg.sender, mgro);
+
+        CeloMgroOapp oapp = new CeloMgroOapp(endpoint, deployer, mgro);
         console.log("CeloMgroOapp deployed at:", address(oapp));
 
         MGRO(mgro).setManagementContract(address(oapp));

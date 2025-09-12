@@ -17,7 +17,7 @@ contract BridgeNFT is Script {
         address deployer = vm.addr(privateKey);
         
         // Get token ID to bridge (optional, defaults to 1)
-        uint256 tokenId = vm.envOr("TOKEN_ID", uint256(5));
+        uint256 tokenId = vm.envOr("TOKEN_ID", uint256(7));
         
         uint256 dstChainId = block.chainid == 84532 ? 11155111 : 84532;
         
