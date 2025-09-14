@@ -37,6 +37,8 @@ library ChainConfig {
 		if (chainId == 8453) return LzInfo({ eid: 30184, endpoint: 0x1a44076050125825900e736c501f859c50fE728c });
 		// Celo mainnet
 		if (chainId == 42220) return LzInfo({ eid: 30125, endpoint: 0x1a44076050125825900e736c501f859c50fE728c });
+
+		if (chainId == 1) return LzInfo({ eid: 30101, endpoint: 0x1a44076050125825900e736c501f859c50fE728c });
 	}
 
 	function isTestnet(uint256 chainId) internal pure returns (bool) {

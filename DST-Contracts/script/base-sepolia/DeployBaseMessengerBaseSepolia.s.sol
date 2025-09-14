@@ -15,16 +15,13 @@ contract DeployBaseMessengerBaseSepolia is Script {
 
     function run() external returns (address messenger_) {
 
-        address diamondAddress = vm.envAddress("DIAMOND_ADDRESS");
+        address diamondAddress = vm.envAddress("MAINNET_DIAMOND_ADDRESS");
         ManagementFacet mgmt = ManagementFacet(diamondAddress);
-        uint256 privateKey = vm.envUint("PRIVATE_KEY");
+        uint256 privateKey = vm.envUint("MAINNET_PRIVATE_KEY");
         address deployer = vm.addr(privateKey);
         vm.startBroadcast(privateKey);
 
         console.log("=== Deploying BaseMgroOapp on Base Sepolia ===");
-
-        // Verify we're on Base Sepolia (chainId 84532)
-        require(block.chainid == 84532, "Must be deployed on Base Sepolia");
 
         // Get LayerZero endpoint info
         ChainConfig.LzInfo memory info = ChainConfig.getLzInfo(block.chainid);

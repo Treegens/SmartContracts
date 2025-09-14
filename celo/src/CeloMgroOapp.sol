@@ -89,6 +89,7 @@ contract CeloMgroOapp is Ownable, OApp, OAppOptionsType3 {
         } else {
             emit AckInsufficientFunds(uint8(ackType), user, amount, fee.nativeFee, address(this).balance);
         }
+
     }
 
     function _payNative(uint256 _nativeFee) internal override returns (uint256 nativeFee) {
@@ -116,4 +117,5 @@ contract CeloMgroOapp is Ownable, OApp, OAppOptionsType3 {
 
     
 }
+
 

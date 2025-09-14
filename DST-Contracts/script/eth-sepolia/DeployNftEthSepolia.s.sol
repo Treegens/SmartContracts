@@ -16,20 +16,22 @@ contract DeployNftEthSepolia is Script {
 
     function run() external returns (address nft_) {
         address nftUpdater = address(0);
-        uint256 privateKey = vm.envUint("PRIVATE_KEY");
+        uint256 privateKey = vm.envUint("MAINNET_PRIVATE_KEY");
+        address deployer = vm.addr(privateKey);
+
+        // Record initial gas and ETH balance
+        uint256 gasAtStart = gasleft();
+        uint256 ethAtStart = deployer.balance;
+
         vm.startBroadcast(privateKey);
 
         console.log("=== Deploying TreegenNFT on Ethereum Sepolia ===");
 
-        // Verify we're on Ethereum Sepolia (chainId 11155111)
-        require(block.chainid == 11155111, "Must be deployed on Ethereum Sepolia");
-
         // Get deployer address
-        address deployer = vm.addr(privateKey);
         console.log("Deployer:", deployer);
 
         // Use the SAME salt as canonical deployment for deterministic address
-        string memory saltString = vm.envString("NFT_SALT");
+        string memory saltString = vm.envString("MAINNET_NFT_SALT");
         bytes32 salt = keccak256(abi.encode(saltString));
         console.log("CREATE3 Salt (same as canonical):", vm.toString(salt));
 
@@ -47,12 +49,19 @@ contract DeployNftEthSepolia is Script {
         // Create initialization code with correct constructor parameters
         bytes memory initCode = abi.encodePacked(
             type(TreegenNFT).creationCode,
-            abi.encode("Treegen", "TGN", defaultURI, info.endpoint, deployer, nftUpdater)
+            abi.encode("Treegens Dynamic NFT Agent", "TREEGEN", defaultURI, info.endpoint, deployer, nftUpdater)
         );
 
         // Deploy using CREATE3
         nft_ = CREATE3.deployDeterministic(initCode, salt);
         TreegenNFT nft = TreegenNFT(nft_);
+
+        // Record gas and ETH after deployment
+        uint256 gasAtEnd = gasleft();
+        uint256 ethAtEnd = deployer.balance;
+
+        uint256 gasUsed = gasAtStart - gasAtEnd;
+        uint256 ethUsed = ethAtStart > ethAtEnd ? ethAtStart - ethAtEnd : 0;
 
         console.log("TreegenNFT deployed at:", nft_);
         console.log("Address matches prediction:", nft_ == predictedAddress);
@@ -61,6 +70,11 @@ contract DeployNftEthSepolia is Script {
         require(nft.owner() == deployer, "Owner not set correctly");
         console.log("NFT owner verified:", nft.owner());
         console.log("NFT default URI:", defaultURI);
+
+        // Log gas and ETH usage
+        console.log("=== Deployment Gas and ETH Usage ===");
+        console.log("Gas used:", gasUsed);
+        console.log("ETH used (wei):", ethUsed);
 
         console.log("=== TreegenNFT Deployment Complete ===");
         console.log("NFT address:", nft_);

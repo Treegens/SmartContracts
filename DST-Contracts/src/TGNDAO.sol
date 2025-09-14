@@ -30,7 +30,7 @@ contract TGNDAO is
     GovernorSettings(
       _votingDelay, 
       _votingPeriod, // 45818, /* 1 week */ // voting period
-      0 // proposal threshold
+      0 //  oposal threshold
     )
     GovernorVotes(_token)
     GovernorVotesQuorumFraction(_quorumPercentage)

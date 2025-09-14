@@ -14,25 +14,23 @@ contract InitializeManagementFacetBaseSepolia is Script {
 
     function run(
     ) external {
-        address diamondAddress = vm.envAddress("DIAMOND_ADDRESS");
-        address nftAddress = vm.envAddress("NFT_ADDRESS");
-        address daoAddress = vm.envAddress("DAO_ADDRESS");
+        uint256 privateKey = vm.envUint("MAINNET_PRIVATE_KEY");
+        address deployer = vm.addr(privateKey);
+        address diamondAddress = vm.envAddress("MAINNET_DIAMOND_ADDRESS");
+        address nftAddress = vm.envAddress("MAINNET_NFT_ADDRESS");
+        address tgnAddress = vm.envAddress("MAINNET_TGN_ADDRESS");
+        address daoAddress = deployer;
 
-        uint256 privateKey = vm.envUint("PRIVATE_KEY");
         vm.startBroadcast(privateKey);
 
         console.log("=== Initializing ManagementFacet on Base Sepolia ===");
 
-        // Verify we're on Base Sepolia (chainId 84532)
-        require(block.chainid == 84532, "Must be deployed on Base Sepolia");
-
         console.log("Diamond Address:", diamondAddress);
         console.log("NFT Address:", nftAddress);
         console.log("DAO Address:", daoAddress);
+        console.log("TGN Address:", tgnAddress);
 
-        // Get USDC address for Base Sepolia
-        address usdcAddress = ChainConfig.getTestnetUSDC(block.chainid);
-        console.log("USDC Address:", usdcAddress);
+
 
         // Initialize ManagementFacet
         ManagementFacet management = ManagementFacet(diamondAddress);
@@ -41,14 +39,14 @@ contract InitializeManagementFacetBaseSepolia is Script {
         // _minter = nftAddress (TreegenNFT_Canonical)
         // _token = address(0) (MGRO - to be set later)
         // _dao = daoAddress (TGNDAO)
-        // _buyToken = usdcAddress (USDC on Base Sepolia)
+        // _buyToken = tgnAddress (TGN on Base Sepolia)
 
         console.log("Initializing ManagementFacet...");
         management.initialize(
             nftAddress,     // _minter (TreegenNFT_Canonical)
             address(0),     // _token (MGRO - address(0) for now)
             daoAddress,     // _dao (TGNDAO)
-            usdcAddress     // _buyToken (USDC)
+            tgnAddress    // _buyToken (TGN)
         );
 
         console.log("ManagementFacet initialized successfully");

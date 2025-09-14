@@ -19,13 +19,11 @@ import {ChainConfig} from "../../script/ChainConfig.s.sol";
 contract DeployDiamondBaseSepolia is Script {
 
     function run() external returns (address diamond_) {
-        uint256 privateKey = vm.envUint("PRIVATE_KEY");
+        uint256 privateKey = vm.envUint("MAINNET_PRIVATE_KEY");
         vm.startBroadcast(privateKey);
 
         console.log("=== Deploying Diamond on Base Sepolia ===");
 
-        // Verify we're on Base Sepolia (chainId 84532)
-        require(block.chainid == 84532, "Must be deployed on Base Sepolia");
 
         // Get deployer address
         address deployer = vm.addr(privateKey);
@@ -83,13 +81,15 @@ contract DeployDiamondBaseSepolia is Script {
 
         // 3. ManagementFacet
         {
-            bytes4[] memory selectors = new bytes4[](19);
+            bytes4[] memory selectors = new bytes4[](20);
             uint256 i;
             selectors[i++] = ManagementFacet.initialize.selector;
             selectors[i++] = ManagementFacet.setFeeCollector.selector;
             selectors[i++] = ManagementFacet.setPurchaseToken.selector;
             selectors[i++] = ManagementFacet.setVerificationContract.selector;
             selectors[i++] = ManagementFacet.setMgroToken.selector;
+            selectors[i++] = ManagementFacet.setDao.selector;
+            selectors[i++] = ManagementFacet.setMinter.selector;
             selectors[i++] = ManagementFacet.checkUserNFTs.selector;
             selectors[i++] = ManagementFacet.checkStats.selector;
             selectors[i++] = ManagementFacet.mintMgroTokens.selector;
@@ -100,6 +100,7 @@ contract DeployDiamondBaseSepolia is Script {
             selectors[i++] = ManagementFacet.xchainSetDstEid.selector;
             selectors[i++] = ManagementFacet.xchainGetMessenger.selector;
             selectors[i++] = ManagementFacet.xchainGetDstEid.selector;
+            selectors[i++] = ManagementFacet.totalSupply.selector;
             selectors[i++] = ManagementFacet.mintNFT.selector;
             selectors[i++] = ManagementFacet.mintNFTasUser.selector;
 

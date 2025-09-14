@@ -14,22 +14,19 @@ import {CREATE3} from "../../lib/solady/src/utils/CREATE3.sol";
 contract DeployNftCanonicalBaseSepolia is Script {
 
     function run() external returns (address nft_) {
-        address management = vm.envAddress("DIAMOND_ADDRESS");
+        address management = vm.envAddress("MAINNET_DIAMOND_ADDRESS");
         address nftUpdater = address(0);
-        uint256 privateKey = vm.envUint("PRIVATE_KEY");
-        vm.startBroadcast(privateKey);
+        uint256 privateKey = vm.envUint("MAINNET_PRIVATE_KEY");
+        vm.startBroadcast();
 
         console.log("=== Deploying TreegenNFT Canonical on Base Sepolia ===");
-
-        // Verify we're on Base Sepolia (chainId 84532)
-        require(block.chainid == 84532, "Must be deployed on Base Sepolia");
 
         // Get deployer address
         address deployer = vm.addr(privateKey);
         console.log("Deployer:", deployer);
 
         // Use deterministic salt for CREATE3 - same salt will be used on OP Sepolia
-        string memory saltString = vm.envString("NFT_SALT");
+        string memory saltString = vm.envString("MAINNET_NFT_SALT");
         bytes32 salt = keccak256(abi.encode(saltString));
         console.log("CREATE3 Salt:", vm.toString(salt));
 
@@ -46,7 +43,7 @@ contract DeployNftCanonicalBaseSepolia is Script {
         // Create initialization code with correct constructor parameters
         bytes memory initCode = abi.encodePacked(
             type(TreegenNFT).creationCode,
-            abi.encode("Treegen", "TGN", defaultURI, info.endpoint, deployer, management, nftUpdater)
+            abi.encode("Treegens Dynamic NFT Agent", "TREEGEN", defaultURI, info.endpoint, deployer, management, nftUpdater)
         );
 
         // Deploy using CREATE3

@@ -3,9 +3,9 @@ pragma solidity ^0.8.17;
 
 import "forge-std/Script.sol";
 import {console} from "forge-std/console.sol";
-import {MGRO} from "../../src/MGRO.sol";
-import {ChainConfig} from "../../script/ChainConfig.s.sol";
-import {CREATE3} from "../../lib/solady/src/utils/CREATE3.sol";
+import {MGRO} from "../src/MGRO.sol";
+import {ChainConfig} from "./ChainConfig.s.sol";
+import {CREATE3} from "../lib/solady/src/utils/CREATE3.sol";
 
 /**
  * @title DeployMgroOpSepolia
