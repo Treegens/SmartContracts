@@ -96,7 +96,6 @@ contract CeloMgroOapp is Ownable, OApp, OAppOptionsType3 {
         return _nativeFee;
     }
 
-
     // Emergency functions to handle trapped funds
     function withdrawNative(uint256 _amount) external onlyOwner {
         require(address(this).balance >= _amount, "Insufficient balance");

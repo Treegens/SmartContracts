@@ -3,67 +3,42 @@ pragma solidity ^0.8.17;
 
 import "forge-std/Script.sol";
 import {ChainConfig} from "./ChainConfig.s.sol";
-import {BaseMgroOapp} from "../src/bridge/BaseMgroOapp.sol";
-import {CeloMgroOapp} from "../src/bridge/CeloMgroOapp.sol";
-import {TreegenNFT} from "../src/onft/TreegenNFT.sol";
-import {OAppOptionsType3} from "../lib/layerzero-v2/packages/layerzero-v2/evm/oapp/contracts/oapp/libs/OAppOptionsType3.sol";
-import {OptionsBuilder} from "../lib/layerzero-v2/packages/layerzero-v2/evm/oapp/contracts/oapp/libs/OptionsBuilder.sol";
-import {EnforcedOptionParam} from "../lib/layerzero-v2/packages/layerzero-v2/evm/oapp/contracts/oapp/interfaces/IOAppOptionsType3.sol";
 import {IMessageLibManager, SetConfigParam} from "../lib/layerzero-v2/packages/layerzero-v2/evm/protocol/contracts/interfaces/IMessageLibManager.sol";
 import {UlnConfig} from "../lib/layerzero-v2/packages/layerzero-v2/evm/messagelib/contracts/uln/UlnBase.sol";
 
-contract LayerzeroConfig is Script {
-    using OptionsBuilder for bytes;
+contract SetupDvnConfig is Script {
+    
     function run() external {
-        
         address base_messenger = vm.envAddress("MAINNET_BASE_MESSENGER");
-        address op_messenger = vm.envAddress("MAINNET_CELO_MESSENGER");
+        address celo_messenger = vm.envAddress("MAINNET_CELO_MESSENGER");
         address nft = vm.envAddress("MAINNET_NFT_ADDRESS");
 
-        uint256 baseGas = 300000;
-        uint256 opGas = 150000;
-        uint256 nftGas = 200000;
-
         uint32 baseEid = uint32(ChainConfig.getLzInfo(8453).eid);
-        uint32 opEid = uint32(ChainConfig.getLzInfo(42220).eid);
-        uint32 sepoliaEid = uint32(ChainConfig.getLzInfo(1).eid);
-        console.log("Base EID:", baseEid);
-        console.log("OP EID:", opEid);
-        console.log("Sepolia EID:", sepoliaEid);
-
+        uint32 celoEid = uint32(ChainConfig.getLzInfo(42220).eid);
+        uint32 ethereumEid = uint32(ChainConfig.getLzInfo(1).eid);
         
+        console.log("=== Setting up DVN Configuration ===");
+        console.log("Base EID:", baseEid);
+        console.log("Celo EID:", celoEid);
+        console.log("Ethereum EID:", ethereumEid);
+
+        // Configure Base mainnet SEND configurations
+        console.log("\n--- Configuring Base Mainnet SEND ---");
         vm.createSelectFork(vm.rpcUrl("base"));
         vm.startBroadcast();
 
-        // Set peer for messenger: base to op
-        // console.log("BaseMgroOapp delegate:", BaseMgroOapp(base_messenger).delegate());
-        // BaseMgroOapp(base_messenger).setPeer(opEid, bytes32(uint256(uint160(op_messenger))));
-        
-        // Set enforced options for messenger
-        EnforcedOptionParam[] memory messengerOptions = new EnforcedOptionParam[](1);
-        messengerOptions[0] = EnforcedOptionParam({
-            eid: opEid,
-            msgType: 1,
-            options: OptionsBuilder
-                .newOptions()
-                // Ensure sufficient gas for lzReceive
-                .addExecutorLzReceiveOption(uint128(baseGas), 0)
-        });
-        BaseMgroOapp(base_messenger).setEnforcedOptions(messengerOptions);
-
-        // Configure Endpoint ULN SEND (base -> op) with 1-of-3 DVNs (LZ + Nethermind + Google)
+        // BaseMgroOapp SEND: Base -> Celo
+        console.log("Setting BaseMgroOapp SEND DVN config (Base -> Celo)");
         {
             ChainConfig.LzInfo memory src = ChainConfig.getLzInfo(8453);
             address endpoint = src.endpoint;
-            // resolve current send library for this OApp and dstEid
-            address sendLib = IMessageLibManager(endpoint).defaultSendLibrary(opEid);
+            address sendLib = IMessageLibManager(endpoint).defaultSendLibrary(celoEid);
 
             address[] memory required = new address[](0);
             address[] memory optional = new address[](3);
             address lzDvn = ChainConfig.getDvnConfig(8453).lz;
             address nethermindDvn = ChainConfig.getDvnConfig(8453).nethermind;
             address googleDvn = ChainConfig.getDvnConfig(8453).google;
-            // Sort DVNs in ascending order (required by LayerZero)
             (optional[0], optional[1], optional[2]) = sortThreeAddresses(lzDvn, nethermindDvn, googleDvn);
 
             UlnConfig memory uln = UlnConfig({
@@ -76,36 +51,23 @@ contract LayerzeroConfig is Script {
             });
 
             SetConfigParam[] memory params = new SetConfigParam[](1);
-            params[0] = SetConfigParam({ eid: opEid, configType: 2, config: abi.encode(uln) });
+            params[0] = SetConfigParam({ eid: celoEid, configType: 2, config: abi.encode(uln) });
             IMessageLibManager(endpoint).setConfig(base_messenger, sendLib, params);
+            console.log("BaseMgroOapp SEND DVN config set");
         }
 
-        // Set peer for NFT: base to sepolia
-        // TreegenNFT(nft).setPeer(sepoliaEid, bytes32(uint256(uint160(nft))));
-        
-        // Set enforced options for NFT
-        EnforcedOptionParam[] memory nftOptions = new EnforcedOptionParam[](1);
-        nftOptions[0] = EnforcedOptionParam({
-            eid: sepoliaEid,
-            msgType: 1,
-            options: OptionsBuilder
-                .newOptions()
-                .addExecutorLzReceiveOption(uint128(nftGas), 0)
-        });
-        TreegenNFT(nft).setEnforcedOptions(nftOptions);
-
-        // Configure Endpoint ULN SEND (base -> sepolia) for NFT with 1-of-3 DVNs
+        // TreegenNFT SEND: Base -> Ethereum
+        console.log("Setting TreegenNFT SEND DVN config (Base -> Ethereum)");
         {
             ChainConfig.LzInfo memory src = ChainConfig.getLzInfo(8453);
             address endpoint = src.endpoint;
-            address sendLib = IMessageLibManager(endpoint).defaultSendLibrary(sepoliaEid);
+            address sendLib = IMessageLibManager(endpoint).defaultSendLibrary(ethereumEid);
 
             address[] memory required = new address[](0);
             address[] memory optional = new address[](3);
             address lzDvn = ChainConfig.getDvnConfig(8453).lz;
             address nethermindDvn = ChainConfig.getDvnConfig(8453).nethermind;
             address googleDvn = ChainConfig.getDvnConfig(8453).google;
-            // Sort DVNs in ascending order (required by LayerZero)
             (optional[0], optional[1], optional[2]) = sortThreeAddresses(lzDvn, nethermindDvn, googleDvn);
 
             UlnConfig memory uln = UlnConfig({
@@ -118,34 +80,24 @@ contract LayerzeroConfig is Script {
             });
 
             SetConfigParam[] memory params = new SetConfigParam[](1);
-            params[0] = SetConfigParam({ eid: sepoliaEid, configType: 2, config: abi.encode(uln) });
+            params[0] = SetConfigParam({ eid: ethereumEid, configType: 2, config: abi.encode(uln) });
             IMessageLibManager(endpoint).setConfig(nft, sendLib, params);
+            console.log("TreegenNFT SEND DVN config set");
         }
 
         vm.stopBroadcast();
-        
+
+        // Configure Celo mainnet RECEIVE configuration
+        console.log("\n--- Configuring Celo Mainnet RECEIVE ---");
         vm.createSelectFork(vm.rpcUrl("celo"));
         vm.startBroadcast();
-        
-        // Set peer for messenger: op to base
-        CeloMgroOapp(payable(op_messenger)).setPeer(baseEid, bytes32(uint256(uint160(base_messenger))));
-        
-        // Set enforced options for messenger
-        EnforcedOptionParam[] memory opMessengerOptions = new EnforcedOptionParam[](1);
-        opMessengerOptions[0] = EnforcedOptionParam({
-            eid: baseEid,
-            msgType: 1,
-            options: OptionsBuilder
-                .newOptions()
-                .addExecutorLzReceiveOption(uint128(opGas), 0)
-        });
-        CeloMgroOapp(payable(op_messenger)).setEnforcedOptions(opMessengerOptions);
 
-        // Configure Endpoint ULN RECEIVE (op <- base) for messenger with 1-of-3 DVNs
+        // CeloMgroOapp RECEIVE: Celo <- Base
+        console.log("Setting CeloMgroOapp RECEIVE DVN config (Celo <- Base)");
         {
             ChainConfig.LzInfo memory dst = ChainConfig.getLzInfo(42220);
             address endpoint = dst.endpoint;
-            (address recvLib, ) = IMessageLibManager(endpoint).getReceiveLibrary(op_messenger, baseEid);
+            (address recvLib, ) = IMessageLibManager(endpoint).getReceiveLibrary(celo_messenger, baseEid);
             if (recvLib == address(0)) {
                 recvLib = IMessageLibManager(endpoint).defaultReceiveLibrary(baseEid);
             }
@@ -155,7 +107,6 @@ contract LayerzeroConfig is Script {
             address lzDvn = ChainConfig.getDvnConfig(42220).lz;
             address nethermindDvn = ChainConfig.getDvnConfig(42220).nethermind;
             address googleDvn = ChainConfig.getDvnConfig(42220).google;
-            // Sort DVNs in ascending order (required by LayerZero)
             (optional[0], optional[1], optional[2]) = sortThreeAddresses(lzDvn, nethermindDvn, googleDvn);
 
             UlnConfig memory uln = UlnConfig({
@@ -169,29 +120,19 @@ contract LayerzeroConfig is Script {
 
             SetConfigParam[] memory params = new SetConfigParam[](1);
             params[0] = SetConfigParam({ eid: baseEid, configType: 2, config: abi.encode(uln) });
-            IMessageLibManager(endpoint).setConfig(op_messenger, recvLib, params);
+            IMessageLibManager(endpoint).setConfig(celo_messenger, recvLib, params);
+            console.log("CeloMgroOapp RECEIVE DVN config set");
         }
 
         vm.stopBroadcast();
-        
+
+        // Configure Ethereum mainnet RECEIVE configuration
+        console.log("\n--- Configuring Ethereum Mainnet RECEIVE ---");
         vm.createSelectFork(vm.rpcUrl("ethereum"));
         vm.startBroadcast();
-        
-        // Set peer for NFT: sepolia to base
-        // TreegenNFT(nft).setPeer(baseEid, bytes32(uint256(uint160(nft))));
-        
-        // Set enforced options for NFT
-        EnforcedOptionParam[] memory sepoliaNftOptions = new EnforcedOptionParam[](1);
-        sepoliaNftOptions[0] = EnforcedOptionParam({
-            eid: baseEid,
-            msgType: 1,
-            options: OptionsBuilder
-                .newOptions()
-                .addExecutorLzReceiveOption(uint128(nftGas), 0)
-        });
-        TreegenNFT(nft).setEnforcedOptions(sepoliaNftOptions);
 
-        // Configure Endpoint ULN RECEIVE (sepolia <- base) for NFT with 1-of-3 DVNs
+        // TreegenNFT RECEIVE: Ethereum <- Base
+        console.log("Setting TreegenNFT RECEIVE DVN config (Ethereum <- Base)");
         {
             ChainConfig.LzInfo memory dst = ChainConfig.getLzInfo(1);
             address endpoint = dst.endpoint;
@@ -205,7 +146,6 @@ contract LayerzeroConfig is Script {
             address lzDvn = ChainConfig.getDvnConfig(1).lz;
             address nethermindDvn = ChainConfig.getDvnConfig(1).nethermind;
             address googleDvn = ChainConfig.getDvnConfig(1).google;
-            // Sort DVNs in ascending order (required by LayerZero)
             (optional[0], optional[1], optional[2]) = sortThreeAddresses(lzDvn, nethermindDvn, googleDvn);
 
             UlnConfig memory uln = UlnConfig({
@@ -220,25 +160,23 @@ contract LayerzeroConfig is Script {
             SetConfigParam[] memory params = new SetConfigParam[](1);
             params[0] = SetConfigParam({ eid: baseEid, configType: 2, config: abi.encode(uln) });
             IMessageLibManager(endpoint).setConfig(nft, recvLib, params);
+            console.log("TreegenNFT RECEIVE DVN config set");
         }
 
         vm.stopBroadcast();
 
+        console.log("\n=== All DVN configurations completed successfully! ===");
     }
 
-    // Helper function to sort three addresses in ascending order
     function sortThreeAddresses(address a, address b, address c) internal pure returns (address, address, address) {
-        address[3] memory arr = [a, b, c];
-        // Simple bubble sort for 3 elements
-        for (uint i = 0; i < 2; i++) {
-            for (uint j = 0; j < 2 - i; j++) {
-                if (arr[j] > arr[j+1]) {
-                    address temp = arr[j];
-                    arr[j] = arr[j+1];
-                    arr[j+1] = temp;
-                }
-            }
+        if (a < b) {
+            if (b < c) return (a, b, c);
+            else if (a < c) return (a, c, b);
+            else return (c, a, b);
+        } else {
+            if (a < c) return (b, a, c);
+            else if (b < c) return (b, c, a);
+            else return (c, b, a);
         }
-        return (arr[0], arr[1], arr[2]);
     }
 }

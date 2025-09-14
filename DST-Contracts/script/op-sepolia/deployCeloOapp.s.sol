@@ -12,11 +12,11 @@ import {OptionsBuilder} from "@layerzerolabs/oapp-evm/contracts/oapp/libs/Option
 contract DeployCeloOapp is Script {
     using OptionsBuilder for bytes;
     function run() external {
-        uint256 privateKey = vm.envUint("PRIVATE_KEY");
-        address deployer = vm.envAddress(privateKey);
+        uint256 privateKey = vm.envUint("MAINNET_PRIVATE_KEY");
+        address deployer = vm.addr(privateKey);
         vm.startBroadcast(privateKey);
-        address endpoint = ChainConfig.testnetLzInfo(block.chainid).endpoint;
-        address mgro = vm.envAddress("MGRO_ADDRESS");
+        address endpoint = ChainConfig.mainnetLzInfo(block.chainid).endpoint;
+        address mgro = vm.envAddress("MAINNET_MGRO_ADDRESS");
 
 
         CeloMgroOapp oapp = new CeloMgroOapp(endpoint, deployer, mgro);
@@ -28,14 +28,6 @@ contract DeployCeloOapp is Script {
         (bool success, ) = address(oapp).call{value: 0.001 ether}("");
         require(success, "Failed to send ETH to oapp");
         console.log("CeloMgroOapp balance:", address(oapp).balance);
-
-        bytes memory abaOptions = OptionsBuilder
-            .newOptions()
-            .addExecutorLzReceiveOption(
-                uint128(200000),
-                uint128(0)
-            );
-        console.logBytes(abaOptions);
 
         // Note: ack options are now enforced by the endpoint
         vm.stopBroadcast();

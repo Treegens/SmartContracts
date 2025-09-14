@@ -1,0 +1,19 @@
+{
+  "name": "dst-contracts",
+  "version": "1.0.0",
+  "description": "## Management Contracts Setup - ✓ Both the minter and MGRO should have the managementFacet contract set",
+  "main": "index.js",
+  "directories": {
+    "lib": "lib",
+    "test": "test"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@layerzerolabs/toolbox-hardhat": "^0.6.12"
+  }
+}
