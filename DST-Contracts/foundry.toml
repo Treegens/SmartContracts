@@ -6,6 +6,7 @@ optimizer = true
 runs = 200
 via_ir = true
 solc_version = "0.8.24"
+evm_version="paris"
 
 remappings = [
   "@openzeppelin/=lib/openzeppelin-contracts/",
