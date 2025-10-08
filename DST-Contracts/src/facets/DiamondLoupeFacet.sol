@@ -64,4 +64,27 @@ contract DiamondLoupeFacet is IDiamondLoupe, IERC165 {
         LibDiamond.DiamondStorage storage ds = LibDiamond.diamondStorage();
         return ds.supportedInterfaces[_interfaceId];
     }
+
+    /// @notice Validate all facets still have code deployed
+    /// @return isValid true if all facets are valid; invalidFacets list of any invalid facet addresses
+    function validateDiamondIntegrity() external view returns (bool isValid, address[] memory invalidFacets) {
+        LibDiamond.DiamondStorage storage ds = LibDiamond.diamondStorage();
+        address[] memory facets_ = ds.facetAddresses;
+        address[] memory tmp = new address[](facets_.length);
+        uint256 invalidCount = 0;
+        for (uint256 i = 0; i < facets_.length; i++) {
+            uint256 size;
+            address f = facets_[i];
+            assembly { size := extcodesize(f) }
+            if (size == 0) {
+                tmp[invalidCount] = f;
+                invalidCount++;
+            }
+        }
+        invalidFacets = new address[](invalidCount);
+        for (uint256 i = 0; i < invalidCount; i++) {
+            invalidFacets[i] = tmp[i];
+        }
+        isValid = invalidCount == 0;
+    }
 }

@@ -9,7 +9,17 @@ import { IDiamondCut } from "./interfaces/IDiamondCut.sol";
 
 contract Diamond {    
 
+    event DiamondInitialized(address indexed owner, address indexed diamondCutFacet);
+    event EtherReceived(address indexed sender, uint256 amount);
+
     constructor(address _contractOwner, address _diamondCutFacet) payable {        
+        require(_contractOwner != address(0), "Diamond: owner is zero address");
+        require(_diamondCutFacet != address(0), "Diamond: cut facet is zero address");
+        // verify facet has code
+        uint256 facetSize;
+        assembly { facetSize := extcodesize(_diamondCutFacet) }
+        require(facetSize > 0, "Diamond: cut facet has no code");
+
         LibDiamond.setContractOwner(_contractOwner);
 
         // Add the diamondCut external function from the diamondCutFacet
@@ -21,7 +31,9 @@ contract Diamond {
             action: IDiamondCut.FacetCutAction.Add, 
             functionSelectors: functionSelectors
         });
-        LibDiamond.diamondCut(cut, address(0), "");        
+        LibDiamond.diamondCut(cut, address(0), "");
+
+        emit DiamondInitialized(_contractOwner, _diamondCutFacet);
     }
 
     // Find facet for function that is called and execute the
@@ -36,6 +48,10 @@ contract Diamond {
         // get facet from function selector
         address facet = ds.selectorToFacetAndPosition[msg.sig].facetAddress;
         require(facet != address(0), "Diamond: Function does not exist");
+        // verify facet still has code (not selfdestructed)
+        uint256 facetSize;
+        assembly { facetSize := extcodesize(facet) }
+        require(facetSize > 0, "Diamond: Facet has no code");
         // Execute external function from facet using delegatecall and return any value.
         assembly {
             // copy function selector and any arguments
@@ -55,5 +71,5 @@ contract Diamond {
         }
     }
 
-    receive() external payable {}
+    receive() external payable { emit EtherReceived(msg.sender, msg.value); }
 }

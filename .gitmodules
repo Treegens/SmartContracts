@@ -1,6 +1,6 @@
 [submodule "DST-Contracts/lib/layerzero-v2"]
 	path = DST-Contracts/lib/layerzero-v2
-	url = https://github.com/layerzerolabs/layerzero-v2
+	url = https://github.com/LayerZero-Labs/LayerZero-v2
 [submodule "DST-Contracts/lib/forge-std"]
 	path = DST-Contracts/lib/forge-std
 	url = https://github.com/foundry-rs/forge-std
@@ -12,7 +12,7 @@
 	url = https://github.com/GNSPS/solidity-bytes-utils
 [submodule "DST-Contracts/lib/devtools"]
 	path = DST-Contracts/lib/devtools
-	url = https://github.com/layerzero-labs/devtools
+	url = https://github.com/LayerZero-Labs/devtools
 [submodule "DST-Contracts/lib/openzeppelin-contracts"]
 	path = DST-Contracts/lib/openzeppelin-contracts
 	url = https://github.com/openzeppelin/openzeppelin-contracts

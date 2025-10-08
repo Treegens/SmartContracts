@@ -7,11 +7,6 @@ runs = 200
 via_ir = true
 solc_version = "0.8.24"
 
-remappings = [
-  "@openzeppelin/=lib/openzeppelin-contracts/",
-  "@layerzerolabs/onft-evm/=lib/devtools/packages/onft-evm/",
-  "@layerzerolabs/oapp-evm/=lib/devtools/packages/oapp-evm/"
-]
 
 # Use Sourcify for verification so no explorer API keys are needed
 verifier = "sourcify"

@@ -57,6 +57,13 @@ library LibDiamond {
         IMinter  minter; 
         IERC20 buyToken;
         address feeCollector;
+        // timelock ownership state
+        address proposedOwner;
+        uint256 ownershipTransferTimestamp;
+        uint256 timelockDelay;
+        bool timelockEnabled;
+        // pause state (reserved for future use)
+        bool paused;
     }
 
     function diamondStorage() internal pure returns (DiamondStorage storage ds) {
@@ -81,6 +88,58 @@ library LibDiamond {
 
     function enforceIsContractOwner() internal view {
         require(msg.sender == diamondStorage().contractOwner, "LibDiamond: Must be contract owner");
+    }
+
+    // Timelock ownership helpers
+    function enableTimelock(uint256 delay) internal {
+        require(delay >= 1 days && delay <= 30 days, "LibDiamond: invalid delay");
+        DiamondStorage storage ds = diamondStorage();
+        ds.timelockEnabled = true;
+        ds.timelockDelay = delay;
+    }
+
+    function disableTimelock() internal {
+        DiamondStorage storage ds = diamondStorage();
+        ds.timelockEnabled = false;
+    }
+
+    function proposeOwnershipTransfer(address _proposedOwner) internal {
+        require(_proposedOwner != address(0), "LibDiamond: zero proposed owner");
+        DiamondStorage storage ds = diamondStorage();
+        if (ds.timelockEnabled) {
+            ds.proposedOwner = _proposedOwner;
+            ds.ownershipTransferTimestamp = block.timestamp + ds.timelockDelay;
+        } else {
+            setContractOwner(_proposedOwner);
+        }
+    }
+
+    function cancelOwnershipTransfer() internal {
+        DiamondStorage storage ds = diamondStorage();
+        ds.proposedOwner = address(0);
+        ds.ownershipTransferTimestamp = 0;
+    }
+
+    function acceptOwnership() internal returns (address newOwner) {
+        DiamondStorage storage ds = diamondStorage();
+        require(ds.proposedOwner != address(0), "LibDiamond: no proposal");
+        require(block.timestamp >= ds.ownershipTransferTimestamp, "LibDiamond: timelock not expired");
+        newOwner = ds.proposedOwner;
+        setContractOwner(newOwner);
+        ds.proposedOwner = address(0);
+        ds.ownershipTransferTimestamp = 0;
+    }
+
+    // Integrity helpers
+    function validateSelector(bytes4 selector) internal view returns (bool isValid, address facetAddress) {
+        DiamondStorage storage ds = diamondStorage();
+        facetAddress = ds.selectorToFacetAndPosition[selector].facetAddress;
+        if (facetAddress == address(0)) {
+            return (false, address(0));
+        }
+        uint256 size;
+        assembly { size := extcodesize(facetAddress) }
+        isValid = size > 0;
     }
 
     event DiamondCut(IDiamondCut.FacetCut[] _diamondCut, address _init, bytes _calldata);
