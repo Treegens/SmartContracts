@@ -49,7 +49,7 @@ contract CeloMgroOapp is Ownable, OApp, OAppOptionsType3 {
         uint32 _dstEid,
         address _user,
         uint256 _amount,
-        bytes calldata /*_returnOptions*/,
+        bytes calldata /*_returnOptions*/
     ) external view returns (MessagingFee memory fee) {
         bytes memory ack = abi.encode(Ack.MintOk, _user, _amount);
         bytes memory options = enforcedOptions[_dstEid][MSG_TYPE_ACK];

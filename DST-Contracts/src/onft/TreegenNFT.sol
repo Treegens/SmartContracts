@@ -16,6 +16,10 @@ contract TreegenNFT is ONFT721Enumerable, IERC4906 {
     // Optional mapping for token URIs
     mapping(uint256 tokenId => string) private _tokenURIs;
 
+    // Events
+    event NFTUpdaterChanged(address indexed oldUpdater, address indexed newUpdater);
+    event DefaultURIChanged(string oldURI, string newURI);
+
     modifier onlyNFTUpdater() {
         require(msg.sender == nftUpdater, "Unauthorized");
         _;
@@ -29,17 +33,25 @@ contract TreegenNFT is ONFT721Enumerable, IERC4906 {
         address _delegate,
         address _nftUpdater
     ) ONFT721Enumerable(_name, _symbol, _lzEndpoint, _delegate) {
+        require(_lzEndpoint != address(0), "Invalid LayerZero endpoint");
+        require(_delegate != address(0), "Invalid delegate");
+        require(_nftUpdater != address(0), "Invalid nftUpdater");
+        
         _defaultURI = defaultURI_;
         nftUpdater = _nftUpdater;
     }
 
     function setNFTUpdater(address _address) public onlyOwner {
         require(_address != address(0), "Invalid address");
+        address oldUpdater = nftUpdater;
         nftUpdater = _address;
+        emit NFTUpdaterChanged(oldUpdater, _address);
     }
 
     function setDefaultURI(string memory _newDefaultURI) public onlyOwner {
+        string memory oldURI = _defaultURI;
         _defaultURI = _newDefaultURI;
+        emit DefaultURIChanged(oldURI, _newDefaultURI);
     }
 
     function updateURI(
@@ -113,14 +125,6 @@ contract TreegenNFT is ONFT721Enumerable, IERC4906 {
         return interfaceId == bytes4(0x49064906) || super.supportsInterface(interfaceId);
     }
 
-    /**
-     * @dev Returns the maximum total supply of tokens
-     * @return The maximum supply of tokens
-     */
-    function totalSupply() public view override returns (uint256) {
-        return 1000; // MAX_SUPPLY from ManagementFacet
-    }
-    
     function tokenURI(uint256 tokenId)
         public
         view
@@ -139,5 +143,11 @@ contract TreegenNFT is ONFT721Enumerable, IERC4906 {
         // Otherwise, return defaultURI + tokenId
         return string(abi.encodePacked(_defaultURI, Strings.toString(tokenId)));
     }
+
+    /**
+     * @dev Sets a new maximum batch size for batch operations.
+     * Can only be called by the contract owner.
+     */
+    // intentionally no setMaxBatchSize; clients must size batches to gas constraints
 
 }

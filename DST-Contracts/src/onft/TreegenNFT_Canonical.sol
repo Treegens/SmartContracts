@@ -18,6 +18,13 @@ contract TreegenNFT is ONFT721Enumerable, IERC4906 {
     // Optional mapping for token URIs
     mapping(uint256 tokenId => string) private _tokenURIs;
 
+    // No on-chain batch size limit; rely on off-chain client sizing
+
+    // Events
+    event NFTUpdaterChanged(address indexed oldUpdater, address indexed newUpdater);
+    event ManagementChanged(address indexed oldManagement, address indexed newManagement);
+    event DefaultURIChanged(string oldURI, string newURI);
+
     modifier onlyManagement() {
         require(msg.sender == management, "Unauthorized");
         _;
@@ -37,6 +44,11 @@ contract TreegenNFT is ONFT721Enumerable, IERC4906 {
         address _management,
         address _nftUpdater
     ) ONFT721Enumerable(_name, _symbol, _lzEndpoint, _delegate){
+        require(_lzEndpoint != address(0), "Invalid LayerZero endpoint");
+        require(_delegate != address(0), "Invalid delegate");
+        require(_management != address(0), "Invalid management");
+        require(_nftUpdater != address(0), "Invalid nftUpdater");
+        
         _defaultURI = defaultURI_;
         management = _management;
         nftUpdater = _nftUpdater;
@@ -44,16 +56,22 @@ contract TreegenNFT is ONFT721Enumerable, IERC4906 {
 
     function setNFTUpdater(address _address) public onlyOwner {
         require(_address != address(0), "Invalid address");
+        address oldUpdater = nftUpdater;
         nftUpdater = _address;
+        emit NFTUpdaterChanged(oldUpdater, _address);
     }
 
     function setManagementContract(address _address) public onlyOwner {
         require(_address != address(0), "Invalid address");
+        address oldManagement = management;
         management = _address;
+        emit ManagementChanged(oldManagement, _address);
     }
 
     function setDefaultURI(string memory _newDefaultURI) public onlyOwner {
+        string memory oldURI = _defaultURI;
         _defaultURI = _newDefaultURI;
+        emit DefaultURIChanged(oldURI, _newDefaultURI);
     }
 
     function safeMint(address to, uint256 tokenId) public onlyManagement {
@@ -148,12 +166,6 @@ contract TreegenNFT is ONFT721Enumerable, IERC4906 {
         return interfaceId == bytes4(0x49064906) || super.supportsInterface(interfaceId);
     }
 
-    /**
-     * @dev Returns the maximum total supply of tokens
-     * @return The maximum supply of tokens
-     */
-    function totalSupply() public view override returns (uint256) {
-        return 1000; // MAX_SUPPLY from ManagementFacet
-    }
+    // intentionally no setMaxBatchSize; clients must size batches to gas constraints
 
 }
