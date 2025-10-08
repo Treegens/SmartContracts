@@ -50,11 +50,10 @@ contract CeloMgroOapp is Ownable, OApp, OAppOptionsType3 {
         address _user,
         uint256 _amount,
         bytes calldata /*_returnOptions*/,
-        bool _payInLzToken
     ) external view returns (MessagingFee memory fee) {
         bytes memory ack = abi.encode(Ack.MintOk, _user, _amount);
         bytes memory options = enforcedOptions[_dstEid][MSG_TYPE_ACK];
-        return _quote(_dstEid, ack, options, _payInLzToken);
+        return _quote(_dstEid, ack, options, false);
     }
     
     function _lzReceive(
@@ -73,9 +72,11 @@ contract CeloMgroOapp is Ownable, OApp, OAppOptionsType3 {
         if (op == Operation.Mint) {
             mgro.mintTokens(user, amount);
             ackType = Ack.MintOk;
-        } else {
+        } else if (op == Operation.Burn) {
             mgro.burnTokens(user, amount);
             ackType = Ack.BurnOk;
+        } else {
+            revert("Invalid operation");
         }
 
         bytes memory ack = abi.encode(ackType, user, amount);
