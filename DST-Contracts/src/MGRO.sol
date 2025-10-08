@@ -9,6 +9,8 @@ contract MGRO is OFT {
 
     address public management;
 
+    event ManagementChanged(address indexed oldManagement, address indexed newManagement);
+
     // Canonical MGRO on Celo; bridging via OFT is built-in but peers can remain unset until needed.
     constructor(
         address _lzEndpoint,
@@ -22,7 +24,9 @@ contract MGRO is OFT {
 
     function setManagementContract(address _address) public onlyOwner {
         require(_address != address(0));
+        address previous = management;
         management = _address;
+        emit ManagementChanged(previous, _address);
     }
 
     // Supply control: ONLY via cross-chain receiver (set as management)
@@ -39,6 +43,7 @@ contract MGRO is OFT {
         address _address,
         uint tokenAmt
     ) external onlyManagement {
+        require(_address != address(0), "Invalid address");
         require(
             balanceOf(_address) >= tokenAmt,
             "MGRO: Not Enough tokens to burn"
