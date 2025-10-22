@@ -1,24 +1,34 @@
 // SPDX-License-Identifier: GPL
-pragma solidity ^0.8.20;
-
-
+pragma solidity 0.8.24;
 
 import { LibDiamond } from "./libraries/LibDiamond.sol";
 import { IDiamondCut } from "./interfaces/IDiamondCut.sol";
 
-
-contract Diamond {    
+/**
+ * @title Diamond
+ * @notice Main Diamond proxy contract implementing EIP-2535 Diamond Standard
+ * @dev Delegates calls to facet contracts using delegatecall
+ */
+contract Diamond {
+    // Custom errors for gas efficiency
+    error InvalidAddress();
+    error NoCode();
+    error FunctionDoesNotExist();
 
     event DiamondInitialized(address indexed owner, address indexed diamondCutFacet);
     event EtherReceived(address indexed sender, uint256 amount);
 
+    /**
+     * @notice Initializes the Diamond contract
+     * @param _contractOwner The owner address of the Diamond
+     * @param _diamondCutFacet The address of the DiamondCut facet
+     */
     constructor(address _contractOwner, address _diamondCutFacet) payable {        
-        require(_contractOwner != address(0), "Diamond: owner is zero address");
-        require(_diamondCutFacet != address(0), "Diamond: cut facet is zero address");
-        // verify facet has code
-        uint256 facetSize;
-        assembly { facetSize := extcodesize(_diamondCutFacet) }
-        require(facetSize > 0, "Diamond: cut facet has no code");
+        if (_contractOwner == address(0)) revert InvalidAddress();
+        if (_diamondCutFacet == address(0)) revert InvalidAddress();
+        
+        // Verify facet has code using modern approach
+        if (_diamondCutFacet.code.length == 0) revert NoCode();
 
         LibDiamond.setContractOwner(_contractOwner);
 
@@ -36,8 +46,10 @@ contract Diamond {
         emit DiamondInitialized(_contractOwner, _diamondCutFacet);
     }
 
-    // Find facet for function that is called and execute the
-    // function if a facet is found and return any value.
+    /**
+     * @notice Fallback function to delegate calls to facets
+     * @dev Uses delegatecall to execute function on the appropriate facet
+     */
     fallback() external payable {
         LibDiamond.DiamondStorage storage ds;
         bytes32 position = LibDiamond.DIAMOND_STORAGE_POSITION;
@@ -47,11 +59,10 @@ contract Diamond {
         }
         // get facet from function selector
         address facet = ds.selectorToFacetAndPosition[msg.sig].facetAddress;
-        require(facet != address(0), "Diamond: Function does not exist");
-        // verify facet still has code (not selfdestructed)
-        uint256 facetSize;
-        assembly { facetSize := extcodesize(facet) }
-        require(facetSize > 0, "Diamond: Facet has no code");
+        if (facet == address(0)) revert FunctionDoesNotExist();
+        
+        // Verify facet still has code (not selfdestructed) using modern approach
+        if (facet.code.length == 0) revert NoCode();
         // Execute external function from facet using delegatecall and return any value.
         assembly {
             // copy function selector and any arguments
@@ -71,5 +82,10 @@ contract Diamond {
         }
     }
 
-    receive() external payable { emit EtherReceived(msg.sender, msg.value); }
+    /**
+     * @notice Receive function to accept Ether
+     */
+    receive() external payable { 
+        emit EtherReceived(msg.sender, msg.value); 
+    }
 }

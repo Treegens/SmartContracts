@@ -143,11 +143,4 @@ contract TGNDAO is
   }
 
  
-
-
-    
-  
-
-
- 
 }

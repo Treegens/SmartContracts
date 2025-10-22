@@ -20,6 +20,7 @@ contract MGROVerification is ReentrancyGuard, Ownable {
         uint256 indexed proposalId,
         bool succeeded
     );
+    event VotingPeriodUpdated(uint256 oldPeriod, uint256 newPeriod);
 
     error InvalidInput();
     error Unauthorized();
@@ -190,6 +191,19 @@ contract MGROVerification is ReentrancyGuard, Ownable {
     function setDAOAddress(address _address) external onlyOwner {
         if (_address == address(0)) revert InvalidInput();
         daoAddress = _address;
+    }
+
+    /**
+     * @dev Update voting period. Only DAO can call.
+     * @param _newVotingPeriod New voting period in blocks
+     */
+    function setVotingPeriod(uint256 _newVotingPeriod) external {
+        if (msg.sender != daoAddress) revert Unauthorized();
+        if (_newVotingPeriod == 0) revert InvalidInput();
+        
+        uint256 oldPeriod = votingPeriod;
+        votingPeriod = _newVotingPeriod;
+        emit VotingPeriodUpdated(oldPeriod, _newVotingPeriod);
     }
 
     function _countErrorVote(address[] memory voters) internal {

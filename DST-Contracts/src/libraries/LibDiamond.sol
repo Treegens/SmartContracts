@@ -1,23 +1,25 @@
 // SPDX-License-Identifier: GPL
-pragma solidity ^0.8.20;
+pragma solidity 0.8.24;
 
 /******************************************************************************\
 * Author: Nick Mudge <nick@perfectabstractions.com> (https://twitter.com/mudgen)
 * EIP-2535 Diamonds: https://eips.ethereum.org/EIPS/eip-2535
 /******************************************************************************/
 import { IDiamondCut } from "../interfaces/IDiamondCut.sol";
-
 import {IMGro} from "../interfaces/IMgro.sol";
 import {IMinter} from "../interfaces/IMinter.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-
-
 
 // Remember to add the loupe functions from DiamondLoupeFacet to the diamond.
 // The loupe functions are required by the EIP2535 Diamonds standard
 
 error InitializationFunctionReverted(address _initializationContractAddress, bytes _calldata);
 
+/**
+ * @title LibDiamond
+ * @notice Library for Diamond storage and management functions
+ * @dev Implements EIP-2535 Diamond Standard storage and facet management
+ */
 library LibDiamond {
     bytes32 constant DIAMOND_STORAGE_POSITION = keccak256("diamond.standard.diamond.storage");
 
@@ -130,16 +132,20 @@ library LibDiamond {
         ds.ownershipTransferTimestamp = 0;
     }
 
-    // Integrity helpers
+    /**
+     * @notice Validates that a selector maps to a valid facet with code
+     * @param selector The function selector to validate
+     * @return isValid True if the selector maps to a valid facet with code
+     * @return facetAddress The address of the facet for this selector
+     */
     function validateSelector(bytes4 selector) internal view returns (bool isValid, address facetAddress) {
         DiamondStorage storage ds = diamondStorage();
         facetAddress = ds.selectorToFacetAndPosition[selector].facetAddress;
         if (facetAddress == address(0)) {
             return (false, address(0));
         }
-        uint256 size;
-        assembly { size := extcodesize(facetAddress) }
-        isValid = size > 0;
+        // Use modern code.length approach instead of extcodesize
+        isValid = facetAddress.code.length > 0;
     }
 
     event DiamondCut(IDiamondCut.FacetCut[] _diamondCut, address _init, bytes _calldata);
@@ -280,11 +286,13 @@ library LibDiamond {
         }
     }
 
+    /**
+     * @notice Ensures an address contains contract code
+     * @param _contract The address to check
+     * @param _errorMessage The error message to use if validation fails
+     * @dev Uses modern code.length approach for better security
+     */
     function enforceHasContractCode(address _contract, string memory _errorMessage) internal view {
-        uint256 contractSize;
-        assembly {
-            contractSize := extcodesize(_contract)
-        }
-        require(contractSize > 0, _errorMessage);
+        require(_contract.code.length > 0, _errorMessage);
     }
 }

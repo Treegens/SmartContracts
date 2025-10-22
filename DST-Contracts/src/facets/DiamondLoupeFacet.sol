@@ -66,24 +66,31 @@ contract DiamondLoupeFacet is IDiamondLoupe, IERC165 {
     }
 
     /// @notice Validate all facets still have code deployed
-    /// @return isValid true if all facets are valid; invalidFacets list of any invalid facet addresses
+    /// @notice Validates the integrity of all facets in the diamond
+    /// @return isValid true if all facets are valid; false if any are invalid
+    /// @return invalidFacets list of any invalid facet addresses
     function validateDiamondIntegrity() external view returns (bool isValid, address[] memory invalidFacets) {
         LibDiamond.DiamondStorage storage ds = LibDiamond.diamondStorage();
         address[] memory facets_ = ds.facetAddresses;
         address[] memory tmp = new address[](facets_.length);
         uint256 invalidCount = 0;
-        for (uint256 i = 0; i < facets_.length; i++) {
-            uint256 size;
+        
+        // Gas optimization: cache length
+        uint256 length = facets_.length;
+        for (uint256 i; i < length; ) {
             address f = facets_[i];
-            assembly { size := extcodesize(f) }
-            if (size == 0) {
+            // Use modern code.length approach instead of extcodesize
+            if (f.code.length == 0) {
                 tmp[invalidCount] = f;
-                invalidCount++;
+                unchecked { ++invalidCount; }
             }
+            unchecked { ++i; }
         }
+        
         invalidFacets = new address[](invalidCount);
-        for (uint256 i = 0; i < invalidCount; i++) {
+        for (uint256 i; i < invalidCount; ) {
             invalidFacets[i] = tmp[i];
+            unchecked { ++i; }
         }
         isValid = invalidCount == 0;
     }
