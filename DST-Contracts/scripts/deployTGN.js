@@ -21,6 +21,10 @@ async function main() {
   const MGROToken  = await MGRO.deploy();
   console.log("MGRO Contract Address: ", MGROToken.address);
 
+  const Vault = await hre.ethers.getContractFactory('TGNVault');
+  const TGNVault = await Vault.deploy(TGNToken.address, DAOContract.address);
+  console.log("Vault Contract Address: ", TGNVault.address);
+
 //   // const NFT = await hre.ethers.getContractFactory('TreegenNFT')
 //   // const NFTMinter = await NFT.deploy("ipfs://QmXzFFAoqVuNvmHhGjHf83fuPoNcYchgqnoApQ7TQrawdH/");
 //   // console.log("Treegens NFT Contract Address: ", NFTMinter.address);
