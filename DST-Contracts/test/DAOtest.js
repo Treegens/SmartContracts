@@ -43,30 +43,28 @@
 
 //   it("Should delegate votes to another address", async function () {
 //     const delegateTo = addr1.address;
-  
+
 //     // Mint some tokens to the owner
 //     await TGN.mint(owner.address, ethers.utils.parseEther("1000"));
-  
+
 //     // Advance time by 1 second to ensure a new block is mined
 //     await network.provider.send("evm_increaseTime", [1]);
 //     await network.provider.send("evm_mine");
-  
+
 //     // Delegate votes
 //     await TGN.delegate(delegateTo);
-  
+
 //     // Check if the delegation was successful
 //     const currentTimestamp = (await ethers.provider.getBlock()).timestamp;
 //     const delegatedVotes = await TGN.getVotes(addr1.address);
 //     expect(delegatedVotes).to.equal(await TGN.getVotes(delegateTo));
 //   });
-  
-  
-  
+
 //   // Test voting and executing votes
 //   it("Should propose, vote, and execute a proposal", async function () {
 //     // Mint some tokens to the owner
 //     await TGN.mint(owner.address, ethers.utils.parseEther("1000"));
-  
+
 //     // Get the current voting delay
 //   const currentVotingDelay = await tgnDAO.votingDelay();
 
@@ -76,28 +74,28 @@
 //     ["uint256"],
 //     [newVotingDelay]
 //   );
-  
+
 //     const proposalId = await tgnDAO.propose(
 //       [addr1.address],
 //       [0],
 //       [proposalData],
 //       "Test Proposal"
 //     );
-  
+
 //     // Vote on the proposal
-    
+
 //    // await tgnDAO.castVote(proposalId, true);
-  
+
 //     // Advance time to the end of the voting period
 //     await network.provider.send("evm_increaseTime", [10]); // Adjust to match your voting period
 //     await network.provider.send("evm_mine");
-  
+
 //     // Execute the proposal
 //     await tgnDAO.execute(proposalId);
-  
+
 //     // Check if the proposal was executed successfully
 //     const proposalState = await tgnDAO.state(proposalId);
 //     expect(proposalState).to.equal(4); // Check if the proposal is in the "Succeeded" state after execution
 //   });
-  
+
 // })
