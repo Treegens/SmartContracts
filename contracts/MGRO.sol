@@ -2,39 +2,38 @@
 pragma solidity 0.8.28;
 
 import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
-import "@openzeppelin/contracts/access/Ownable.sol";
+import "@openzeppelin/contracts/access/AccessControl.sol";
+import "./interfaces/IMGRO.sol";
 
-contract MGRO is ERC20, Ownable {
-    error InvalidInput();
+/**
+ * @title MGRO
+ * @author Treegens Foundation
+ * @notice This contract is the main entry point for MGRO token.
+ *          It allows for minting and burning of the token.
+ */
+contract MGRO is ERC20, AccessControl, IMGRO {
+    bytes32 public constant MINTER_ROLE = keccak256("MINTER_ROLE");
+    bytes32 public constant BURNER_ROLE = keccak256("BURNER_ROLE");
 
-    address public management;
+    error MGRO__InvalidInput();
 
-    constructor() ERC20("MGRO", "MGRO") Ownable(msg.sender) {}
-
-    modifier onlyManagement() {
-        require(msg.sender == management, "Unauthorized");
-        _;
+    constructor() ERC20("MGRO", "MGRO") {
+        _grantRole(DEFAULT_ADMIN_ROLE, msg.sender);
     }
 
-    function setManagementContract(address _address) public onlyOwner {
-        require(_address != address(0));
-        management = _address;
+    /// @inheritdoc IMGRO
+    function mint(address to, uint256 amount) external onlyRole(MINTER_ROLE) {
+        _validateInput(to, amount);
+        _mint(to, amount);
     }
 
-    function mintTokens(address _receiver, uint _tokens) external onlyManagement {
-        if (_receiver == address(0)) revert InvalidInput();
-        require(_tokens > 0, "Invalid Token Number");
-        _mint(_receiver, _tokens);
+    /// @inheritdoc IMGRO
+    function burn(address from, uint256 amount) external onlyRole(BURNER_ROLE) {
+        _validateInput(from, amount);
+        _burn(from, amount);
     }
 
-    function burnTokens(address _address, uint tokenAmt) external onlyManagement {
-        require(balanceOf(_address) >= tokenAmt, "Not Enough tokens to burn");
-        _burn(_address, tokenAmt);
+    function _validateInput(address to, uint256 amount) internal pure {
+        if (to == address(0) || amount == 0) revert MGRO__InvalidInput();
     }
-}
-
-interface IMGro {
-    function mintTokens(address _receiver, uint _tokens) external;
-
-    function burnTokens(address _address, uint tokenAmt) external;
 }
