@@ -1,5 +1,6 @@
 import { HardhatRuntimeEnvironment } from 'hardhat/types';
 import { DeployFunction } from 'hardhat-deploy/types';
+import { envOrDefault } from './env';
 
 const deployMGRO: DeployFunction = async function (
   hre: HardhatRuntimeEnvironment
@@ -7,9 +8,11 @@ const deployMGRO: DeployFunction = async function (
   const { deployer } = await hre.getNamedAccounts();
   const { deploy } = hre.deployments;
 
+  const admin = envOrDefault('MGRO_ADMIN_ADDRESS', deployer);
+
   await deploy('MGRO', {
     from: deployer,
-    args: [process.env.MGRO_ADMIN_ADDRESS || deployer],
+    args: [admin],
     log: true,
     autoMine: true
   });
