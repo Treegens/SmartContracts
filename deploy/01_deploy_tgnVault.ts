@@ -13,6 +13,7 @@ const deployTGNVault: DeployFunction = async function (
   await deploy('TGNVault', {
     from: deployer,
     args: [
+      process.env.TGN_VAULT_ADMIN_ADDRESS || deployer,
       TGN_TOKEN_ADDRESS,
       process.env.TGN_VAULT_SLASHER_ADDRESS || deployer,
       Number(

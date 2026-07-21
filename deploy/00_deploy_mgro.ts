@@ -9,7 +9,7 @@ const deployMGRO: DeployFunction = async function (
 
   await deploy('MGRO', {
     from: deployer,
-    args: [],
+    args: [process.env.MGRO_ADMIN_ADDRESS || deployer],
     log: true,
     autoMine: true
   });

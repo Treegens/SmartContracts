@@ -31,8 +31,8 @@ contract TGNVault is AccessControl, ITGNVault {
     error TGNVault__NotEnoughStake();
     error TGNVault__TokenTransferFailed();
 
-    constructor(address _tgn, address _slasher, uint8 _slashingPercent, address _treasury) {
-        if (_tgn == address(0) || _slasher == address(0) || _treasury == address(0)) {
+    constructor(address _admin, address _tgn, address _slasher, uint8 _slashingPercent, address _treasury) {
+        if (_admin == address(0) || _tgn == address(0) || _slasher == address(0) || _treasury == address(0)) {
             revert TGNVault__InvalidInput();
         }
         if (_slashingPercent > 100) revert TGNVault__InvalidInput();
@@ -41,7 +41,7 @@ contract TGNVault is AccessControl, ITGNVault {
         treasury = _treasury;
         slashingPercentage = _slashingPercent;
 
-        _grantRole(DEFAULT_ADMIN_ROLE, msg.sender);
+        _grantRole(DEFAULT_ADMIN_ROLE, _admin);
         _grantRole(SLASHER_ROLE, _slasher);
     }
 

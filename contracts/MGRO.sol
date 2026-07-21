@@ -17,8 +17,9 @@ contract MGRO is ERC20, AccessControl, IMGRO {
 
     error MGRO__InvalidInput();
 
-    constructor() ERC20("MGRO", "MGRO") {
-        _grantRole(DEFAULT_ADMIN_ROLE, msg.sender);
+    constructor(address _admin) ERC20("MGRO", "MGRO") {
+        if (_admin == address(0)) revert MGRO__InvalidInput();
+        _grantRole(DEFAULT_ADMIN_ROLE, _admin);
     }
 
     /// @inheritdoc IMGRO
