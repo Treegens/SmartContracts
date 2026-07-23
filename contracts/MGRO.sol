@@ -1,40 +1,50 @@
 // SPDX-License-Identifier: GPL
 pragma solidity 0.8.28;
 
-import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
+import "@openzeppelin/contracts/token/ERC20/extensions/ERC20Burnable.sol";
+import "@openzeppelin/contracts/token/ERC20/extensions/ERC20Capped.sol";
 import "@openzeppelin/contracts/access/AccessControl.sol";
 import "./interfaces/IMGRO.sol";
 
 /**
  * @title MGRO
  * @author Treegens Foundation
- * @notice This contract is the main entry point for MGRO token.
- *          It allows for minting and burning of the token.
+ * @notice ERC20 reward token with a 1B supply cap, role-gated mint, and permissionless burn.
  */
-contract MGRO is ERC20, AccessControl, IMGRO {
+contract MGRO is ERC20Capped, ERC20Burnable, AccessControl, IMGRO {
     bytes32 public constant MINTER_ROLE = keccak256("MINTER_ROLE");
-    bytes32 public constant BURNER_ROLE = keccak256("BURNER_ROLE");
+
+    uint256 public constant MAX_SUPPLY = 1_000_000_000 * 1 ether;
 
     error MGRO__InvalidInput();
 
-    constructor(address _admin) ERC20("MGRO", "MGRO") {
+    constructor(address _admin) ERC20("Treegens Mangrove", "MGRO") ERC20Capped(MAX_SUPPLY) {
         if (_admin == address(0)) revert MGRO__InvalidInput();
         _grantRole(DEFAULT_ADMIN_ROLE, _admin);
     }
 
     /// @inheritdoc IMGRO
     function mint(address to, uint256 amount) external onlyRole(MINTER_ROLE) {
-        _validateInput(to, amount);
+        if (to == address(0) || amount == 0) revert MGRO__InvalidInput();
         _mint(to, amount);
     }
 
     /// @inheritdoc IMGRO
-    function burn(address from, uint256 amount) external onlyRole(BURNER_ROLE) {
-        _validateInput(from, amount);
-        _burn(from, amount);
+    function burn(uint256 amount) public override(ERC20Burnable, IMGRO) {
+        super.burn(amount);
     }
 
-    function _validateInput(address to, uint256 amount) internal pure {
-        if (to == address(0) || amount == 0) revert MGRO__InvalidInput();
+    /// @inheritdoc IMGRO
+    function burnFrom(address account, uint256 amount) public override(ERC20Burnable, IMGRO) {
+        super.burnFrom(account, amount);
+    }
+
+    /// @inheritdoc IMGRO
+    function cap() public view override(ERC20Capped, IMGRO) returns (uint256) {
+        return super.cap();
+    }
+
+    function _update(address from, address to, uint256 value) internal virtual override(ERC20, ERC20Capped) {
+        super._update(from, to, value);
     }
 }
