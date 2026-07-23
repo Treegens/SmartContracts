@@ -3,17 +3,18 @@ pragma solidity 0.8.28;
 
 import "@openzeppelin/contracts/access/IAccessControl.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import "@openzeppelin/contracts/token/ERC20/extensions/IERC20Permit.sol";
 
 /**
  * @title IMGRO
  * @notice External interface for the MGRO ERC20 token.
- * @dev Combines standard ERC20 transfers with role-gated mint and permissionless burn.
+ * @dev Combines standard ERC20 transfers with EIP-2612 permit, role-gated mint, and permissionless burn.
  *
  * Access is managed through {IAccessControl}. The MGRO implementation defines:
  * - `MINTER_ROLE` — required to call {mint}
  * - `DEFAULT_ADMIN_ROLE` — grants and revokes `MINTER_ROLE`
  */
-interface IMGRO is IERC20, IAccessControl {
+interface IMGRO is IERC20, IERC20Permit, IAccessControl {
     /**
      * @notice Maximum outstanding MGRO supply (1 billion tokens, 18 decimals).
      */
