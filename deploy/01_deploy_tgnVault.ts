@@ -13,7 +13,6 @@ const deployTGNVault: DeployFunction = async function (
 
   const admin = envOrDefault('TGN_VAULT_ADMIN_ADDRESS', deployer);
   const tgnToken = envOrDefault('TGN_TOKEN_ADDRESS', DEFAULT_TGN_TOKEN_ADDRESS);
-  const slasher = envOrDefault('TGN_VAULT_SLASHER_ADDRESS', deployer);
   const slashingPercent = envIntOrDefault(
     'TGN_VAULT_SLASHING_PERCENT',
     DEFAULT_SLASHING_PERCENT,
@@ -23,7 +22,7 @@ const deployTGNVault: DeployFunction = async function (
 
   await deploy('TGNVault', {
     from: deployer,
-    args: [admin, tgnToken, slasher, slashingPercent, treasury],
+    args: [admin, tgnToken, slashingPercent, treasury],
     log: true,
     autoMine: true
   });

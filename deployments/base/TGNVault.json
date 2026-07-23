@@ -1,0 +1,773 @@
+{
+  "address": "0xe3625Ca91C4c29ab7B26dAab07aB418Ab3F947f0",
+  "abi": [
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "_admin",
+          "type": "address"
+        },
+        {
+          "internalType": "address",
+          "name": "_tgn",
+          "type": "address"
+        },
+        {
+          "internalType": "uint8",
+          "name": "_slashingPercent",
+          "type": "uint8"
+        },
+        {
+          "internalType": "address",
+          "name": "_treasury",
+          "type": "address"
+        }
+      ],
+      "stateMutability": "nonpayable",
+      "type": "constructor"
+    },
+    {
+      "inputs": [],
+      "name": "AccessControlBadConfirmation",
+      "type": "error"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "account",
+          "type": "address"
+        },
+        {
+          "internalType": "bytes32",
+          "name": "neededRole",
+          "type": "bytes32"
+        }
+      ],
+      "name": "AccessControlUnauthorizedAccount",
+      "type": "error"
+    },
+    {
+      "inputs": [],
+      "name": "TGNVault__ApproveOrIncreaseAllowance",
+      "type": "error"
+    },
+    {
+      "inputs": [],
+      "name": "TGNVault__InvalidInput",
+      "type": "error"
+    },
+    {
+      "inputs": [],
+      "name": "TGNVault__InvalidSlashingAmount",
+      "type": "error"
+    },
+    {
+      "inputs": [],
+      "name": "TGNVault__NotEnoughStake",
+      "type": "error"
+    },
+    {
+      "inputs": [],
+      "name": "TGNVault__TokenTransferFailed",
+      "type": "error"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": true,
+          "internalType": "bytes32",
+          "name": "role",
+          "type": "bytes32"
+        },
+        {
+          "indexed": true,
+          "internalType": "bytes32",
+          "name": "previousAdminRole",
+          "type": "bytes32"
+        },
+        {
+          "indexed": true,
+          "internalType": "bytes32",
+          "name": "newAdminRole",
+          "type": "bytes32"
+        }
+      ],
+      "name": "RoleAdminChanged",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": true,
+          "internalType": "bytes32",
+          "name": "role",
+          "type": "bytes32"
+        },
+        {
+          "indexed": true,
+          "internalType": "address",
+          "name": "account",
+          "type": "address"
+        },
+        {
+          "indexed": true,
+          "internalType": "address",
+          "name": "sender",
+          "type": "address"
+        }
+      ],
+      "name": "RoleGranted",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": true,
+          "internalType": "bytes32",
+          "name": "role",
+          "type": "bytes32"
+        },
+        {
+          "indexed": true,
+          "internalType": "address",
+          "name": "account",
+          "type": "address"
+        },
+        {
+          "indexed": true,
+          "internalType": "address",
+          "name": "sender",
+          "type": "address"
+        }
+      ],
+      "name": "RoleRevoked",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": true,
+          "internalType": "address",
+          "name": "staker",
+          "type": "address"
+        },
+        {
+          "indexed": false,
+          "internalType": "uint256",
+          "name": "amount",
+          "type": "uint256"
+        }
+      ],
+      "name": "Slashed",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": true,
+          "internalType": "address",
+          "name": "staker",
+          "type": "address"
+        },
+        {
+          "indexed": false,
+          "internalType": "uint256",
+          "name": "amount",
+          "type": "uint256"
+        }
+      ],
+      "name": "Staked",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": true,
+          "internalType": "address",
+          "name": "oldTreasury",
+          "type": "address"
+        },
+        {
+          "indexed": true,
+          "internalType": "address",
+          "name": "newTreasury",
+          "type": "address"
+        }
+      ],
+      "name": "TreasurySet",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": true,
+          "internalType": "address",
+          "name": "staker",
+          "type": "address"
+        },
+        {
+          "indexed": false,
+          "internalType": "uint256",
+          "name": "amount",
+          "type": "uint256"
+        }
+      ],
+      "name": "Unstaked",
+      "type": "event"
+    },
+    {
+      "inputs": [],
+      "name": "DEFAULT_ADMIN_ROLE",
+      "outputs": [
+        {
+          "internalType": "bytes32",
+          "name": "",
+          "type": "bytes32"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "SLASHER_ROLE",
+      "outputs": [
+        {
+          "internalType": "bytes32",
+          "name": "",
+          "type": "bytes32"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "staker",
+          "type": "address"
+        }
+      ],
+      "name": "getLastStakedTime",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "bytes32",
+          "name": "role",
+          "type": "bytes32"
+        }
+      ],
+      "name": "getRoleAdmin",
+      "outputs": [
+        {
+          "internalType": "bytes32",
+          "name": "",
+          "type": "bytes32"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "staker",
+          "type": "address"
+        }
+      ],
+      "name": "getStakedBalance",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "bytes32",
+          "name": "role",
+          "type": "bytes32"
+        },
+        {
+          "internalType": "address",
+          "name": "account",
+          "type": "address"
+        }
+      ],
+      "name": "grantRole",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "bytes32",
+          "name": "role",
+          "type": "bytes32"
+        },
+        {
+          "internalType": "address",
+          "name": "account",
+          "type": "address"
+        }
+      ],
+      "name": "hasRole",
+      "outputs": [
+        {
+          "internalType": "bool",
+          "name": "",
+          "type": "bool"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "",
+          "type": "address"
+        }
+      ],
+      "name": "lastStakedTime",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "bytes32",
+          "name": "role",
+          "type": "bytes32"
+        },
+        {
+          "internalType": "address",
+          "name": "callerConfirmation",
+          "type": "address"
+        }
+      ],
+      "name": "renounceRole",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "bytes32",
+          "name": "role",
+          "type": "bytes32"
+        },
+        {
+          "internalType": "address",
+          "name": "account",
+          "type": "address"
+        }
+      ],
+      "name": "revokeRole",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "_treasury",
+          "type": "address"
+        }
+      ],
+      "name": "setTreasury",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "staker",
+          "type": "address"
+        }
+      ],
+      "name": "slash",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "slashingPercentage",
+      "outputs": [
+        {
+          "internalType": "uint8",
+          "name": "",
+          "type": "uint8"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "uint256",
+          "name": "amount",
+          "type": "uint256"
+        }
+      ],
+      "name": "stake",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "",
+          "type": "address"
+        }
+      ],
+      "name": "stakedBalance",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "bytes4",
+          "name": "interfaceId",
+          "type": "bytes4"
+        }
+      ],
+      "name": "supportsInterface",
+      "outputs": [
+        {
+          "internalType": "bool",
+          "name": "",
+          "type": "bool"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "treasury",
+      "outputs": [
+        {
+          "internalType": "address",
+          "name": "",
+          "type": "address"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "uint256",
+          "name": "amount",
+          "type": "uint256"
+        }
+      ],
+      "name": "unstake",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    }
+  ],
+  "transactionHash": "0x527b72b8cf60b27fec27b701c85b6bc2b3341fbcbbd68a992653a37a662e00e2",
+  "receipt": {
+    "to": null,
+    "from": "0x2EBb1F8a2BE982761439a37A244aCCb9c4665957",
+    "contractAddress": "0xe3625Ca91C4c29ab7B26dAab07aB418Ab3F947f0",
+    "transactionIndex": 109,
+    "gasUsed": "723543",
+    "logsBloom": "0x00000004000000000000000000000000000000000000000000000000200000000080000000000000000000000000000000000000000000000000000000000000000000000000000000000040000000000000000000000000000000000000000000000000020002000000000000000800000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000001000000000000000000080200000000000000000000000002020000000000100000000000020000000000000000000000000000000000000000000000000000100000000000000",
+    "blockHash": "0x29ec06cd74a41401da848d08ba36fe1386fb569aee25aca0b9825c771ab366e6",
+    "transactionHash": "0x527b72b8cf60b27fec27b701c85b6bc2b3341fbcbbd68a992653a37a662e00e2",
+    "logs": [
+      {
+        "transactionIndex": 109,
+        "blockNumber": 49017171,
+        "transactionHash": "0x527b72b8cf60b27fec27b701c85b6bc2b3341fbcbbd68a992653a37a662e00e2",
+        "address": "0xe3625Ca91C4c29ab7B26dAab07aB418Ab3F947f0",
+        "topics": [
+          "0x2f8788117e7eff1d82e926ec794901d17c78024a50270940304540a733656f0d",
+          "0x0000000000000000000000000000000000000000000000000000000000000000",
+          "0x000000000000000000000000fc9265a28f66cf4561d74a4e25d7bbd3f482b8e6",
+          "0x0000000000000000000000002ebb1f8a2be982761439a37a244accb9c4665957"
+        ],
+        "data": "0x",
+        "logIndex": 379,
+        "blockHash": "0x29ec06cd74a41401da848d08ba36fe1386fb569aee25aca0b9825c771ab366e6"
+      }
+    ],
+    "blockNumber": 49017171,
+    "cumulativeGasUsed": "16930092",
+    "status": 1,
+    "byzantium": true
+  },
+  "args": [
+    "0xfC9265A28f66CF4561D74A4E25D7Bbd3F482B8e6",
+    "0xD75dfa972C6136f1c594Fec1945302f885E1ab29",
+    10,
+    "0x2EBb1F8a2BE982761439a37A244aCCb9c4665957"
+  ],
+  "numDeployments": 1,
+  "solcInputHash": "16a5824b28602a9ed908cae40a2338e1",
+  "metadata": "{\"compiler\":{\"version\":\"0.8.28+commit.7893614a\"},\"language\":\"Solidity\",\"output\":{\"abi\":[{\"inputs\":[{\"internalType\":\"address\",\"name\":\"_admin\",\"type\":\"address\"},{\"internalType\":\"address\",\"name\":\"_tgn\",\"type\":\"address\"},{\"internalType\":\"uint8\",\"name\":\"_slashingPercent\",\"type\":\"uint8\"},{\"internalType\":\"address\",\"name\":\"_treasury\",\"type\":\"address\"}],\"stateMutability\":\"nonpayable\",\"type\":\"constructor\"},{\"inputs\":[],\"name\":\"AccessControlBadConfirmation\",\"type\":\"error\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"account\",\"type\":\"address\"},{\"internalType\":\"bytes32\",\"name\":\"neededRole\",\"type\":\"bytes32\"}],\"name\":\"AccessControlUnauthorizedAccount\",\"type\":\"error\"},{\"inputs\":[],\"name\":\"TGNVault__ApproveOrIncreaseAllowance\",\"type\":\"error\"},{\"inputs\":[],\"name\":\"TGNVault__InvalidInput\",\"type\":\"error\"},{\"inputs\":[],\"name\":\"TGNVault__InvalidSlashingAmount\",\"type\":\"error\"},{\"inputs\":[],\"name\":\"TGNVault__NotEnoughStake\",\"type\":\"error\"},{\"inputs\":[],\"name\":\"TGNVault__TokenTransferFailed\",\"type\":\"error\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"bytes32\",\"name\":\"role\",\"type\":\"bytes32\"},{\"indexed\":true,\"internalType\":\"bytes32\",\"name\":\"previousAdminRole\",\"type\":\"bytes32\"},{\"indexed\":true,\"internalType\":\"bytes32\",\"name\":\"newAdminRole\",\"type\":\"bytes32\"}],\"name\":\"RoleAdminChanged\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"bytes32\",\"name\":\"role\",\"type\":\"bytes32\"},{\"indexed\":true,\"internalType\":\"address\",\"name\":\"account\",\"type\":\"address\"},{\"indexed\":true,\"internalType\":\"address\",\"name\":\"sender\",\"type\":\"address\"}],\"name\":\"RoleGranted\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"bytes32\",\"name\":\"role\",\"type\":\"bytes32\"},{\"indexed\":true,\"internalType\":\"address\",\"name\":\"account\",\"type\":\"address\"},{\"indexed\":true,\"internalType\":\"address\",\"name\":\"sender\",\"type\":\"address\"}],\"name\":\"RoleRevoked\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"address\",\"name\":\"staker\",\"type\":\"address\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"amount\",\"type\":\"uint256\"}],\"name\":\"Slashed\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"address\",\"name\":\"staker\",\"type\":\"address\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"amount\",\"type\":\"uint256\"}],\"name\":\"Staked\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"address\",\"name\":\"oldTreasury\",\"type\":\"address\"},{\"indexed\":true,\"internalType\":\"address\",\"name\":\"newTreasury\",\"type\":\"address\"}],\"name\":\"TreasurySet\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"address\",\"name\":\"staker\",\"type\":\"address\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"amount\",\"type\":\"uint256\"}],\"name\":\"Unstaked\",\"type\":\"event\"},{\"inputs\":[],\"name\":\"DEFAULT_ADMIN_ROLE\",\"outputs\":[{\"internalType\":\"bytes32\",\"name\":\"\",\"type\":\"bytes32\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"SLASHER_ROLE\",\"outputs\":[{\"internalType\":\"bytes32\",\"name\":\"\",\"type\":\"bytes32\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"staker\",\"type\":\"address\"}],\"name\":\"getLastStakedTime\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"bytes32\",\"name\":\"role\",\"type\":\"bytes32\"}],\"name\":\"getRoleAdmin\",\"outputs\":[{\"internalType\":\"bytes32\",\"name\":\"\",\"type\":\"bytes32\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"staker\",\"type\":\"address\"}],\"name\":\"getStakedBalance\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"bytes32\",\"name\":\"role\",\"type\":\"bytes32\"},{\"internalType\":\"address\",\"name\":\"account\",\"type\":\"address\"}],\"name\":\"grantRole\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"bytes32\",\"name\":\"role\",\"type\":\"bytes32\"},{\"internalType\":\"address\",\"name\":\"account\",\"type\":\"address\"}],\"name\":\"hasRole\",\"outputs\":[{\"internalType\":\"bool\",\"name\":\"\",\"type\":\"bool\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"name\":\"lastStakedTime\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"bytes32\",\"name\":\"role\",\"type\":\"bytes32\"},{\"internalType\":\"address\",\"name\":\"callerConfirmation\",\"type\":\"address\"}],\"name\":\"renounceRole\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"bytes32\",\"name\":\"role\",\"type\":\"bytes32\"},{\"internalType\":\"address\",\"name\":\"account\",\"type\":\"address\"}],\"name\":\"revokeRole\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"_treasury\",\"type\":\"address\"}],\"name\":\"setTreasury\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"staker\",\"type\":\"address\"}],\"name\":\"slash\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"slashingPercentage\",\"outputs\":[{\"internalType\":\"uint8\",\"name\":\"\",\"type\":\"uint8\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"amount\",\"type\":\"uint256\"}],\"name\":\"stake\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"name\":\"stakedBalance\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"bytes4\",\"name\":\"interfaceId\",\"type\":\"bytes4\"}],\"name\":\"supportsInterface\",\"outputs\":[{\"internalType\":\"bool\",\"name\":\"\",\"type\":\"bool\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"treasury\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"amount\",\"type\":\"uint256\"}],\"name\":\"unstake\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"}],\"devdoc\":{\"author\":\"Treegens Foundation\",\"errors\":{\"AccessControlBadConfirmation()\":[{\"details\":\"The caller of a function is not the expected one. NOTE: Don't confuse with {AccessControlUnauthorizedAccount}.\"}],\"AccessControlUnauthorizedAccount(address,bytes32)\":[{\"details\":\"The `account` is missing a role.\"}]},\"events\":{\"RoleAdminChanged(bytes32,bytes32,bytes32)\":{\"details\":\"Emitted when `newAdminRole` is set as ``role``'s admin role, replacing `previousAdminRole` `DEFAULT_ADMIN_ROLE` is the starting admin for all roles, despite {RoleAdminChanged} not being emitted signaling this.\"},\"RoleGranted(bytes32,address,address)\":{\"details\":\"Emitted when `account` is granted `role`. `sender` is the account that originated the contract call, an admin role bearer except when using {AccessControl-_setupRole}.\"},\"RoleRevoked(bytes32,address,address)\":{\"details\":\"Emitted when `account` is revoked `role`. `sender` is the account that originated the contract call:   - if using `revokeRole`, it is the admin role bearer   - if using `renounceRole`, it is the role bearer (i.e. `account`)\"}},\"kind\":\"dev\",\"methods\":{\"getLastStakedTime(address)\":{\"params\":{\"staker\":\"Account to query.\"}},\"getRoleAdmin(bytes32)\":{\"details\":\"Returns the admin role that controls `role`. See {grantRole} and {revokeRole}. To change a role's admin, use {_setRoleAdmin}.\"},\"getStakedBalance(address)\":{\"params\":{\"staker\":\"Account to query.\"}},\"grantRole(bytes32,address)\":{\"details\":\"Grants `role` to `account`. If `account` had not been already granted `role`, emits a {RoleGranted} event. Requirements: - the caller must have ``role``'s admin role. May emit a {RoleGranted} event.\"},\"hasRole(bytes32,address)\":{\"details\":\"Returns `true` if `account` has been granted `role`.\"},\"renounceRole(bytes32,address)\":{\"details\":\"Revokes `role` from the calling account. Roles are often managed via {grantRole} and {revokeRole}: this function's purpose is to provide a mechanism for accounts to lose their privileges if they are compromised (such as when a trusted device is misplaced). If the calling account had been revoked `role`, emits a {RoleRevoked} event. Requirements: - the caller must be `callerConfirmation`. May emit a {RoleRevoked} event.\"},\"revokeRole(bytes32,address)\":{\"details\":\"Revokes `role` from `account`. If `account` had been granted `role`, emits a {RoleRevoked} event. Requirements: - the caller must have ``role``'s admin role. May emit a {RoleRevoked} event.\"},\"setTreasury(address)\":{\"params\":{\"treasury\":\"New treasury recipient. Requirements: - Caller must have `DEFAULT_ADMIN_ROLE`. - `treasury` must not be the zero address.\"}},\"slash(address)\":{\"params\":{\"staker\":\"Account whose stake is reduced. Requirements: - Caller must have `SLASHER_ROLE`. - `staker` must have a non-zero staked balance.\"}},\"stake(uint256)\":{\"params\":{\"amount\":\"Number of TGN tokens to stake, in the token's smallest unit (wei). Requirements: - `amount` must be greater than zero. - Caller must have approved the vault for at least `amount`.\"}},\"supportsInterface(bytes4)\":{\"details\":\"See {IERC165-supportsInterface}.\"},\"unstake(uint256)\":{\"params\":{\"amount\":\"Number of TGN tokens to withdraw, in the token's smallest unit (wei). Requirements: - `amount` must be greater than zero. - Caller must have at least `amount` staked.\"}}},\"title\":\"TGNVault\",\"version\":1},\"userdoc\":{\"kind\":\"user\",\"methods\":{\"getLastStakedTime(address)\":{\"notice\":\"Returns the timestamp of a staker's most recent stake deposit.\"},\"getStakedBalance(address)\":{\"notice\":\"Returns the amount of TGN a staker currently has in the vault.\"},\"setTreasury(address)\":{\"notice\":\"Updates the treasury address that receives slashed TGN.\"},\"slash(address)\":{\"notice\":\"Slashes a percentage of a staker's balance and sends it to the treasury.\"},\"stake(uint256)\":{\"notice\":\"Stakes `amount` of TGN from the caller into the vault.\"},\"unstake(uint256)\":{\"notice\":\"Unstakes `amount` of TGN back to the caller.\"}},\"notice\":\"Staking vault for TGN with role-gated slashing.\",\"version\":1}},\"settings\":{\"compilationTarget\":{\"contracts/TGNVault.sol\":\"TGNVault\"},\"evmVersion\":\"paris\",\"libraries\":{},\"metadata\":{\"bytecodeHash\":\"ipfs\",\"useLiteralContent\":true},\"optimizer\":{\"enabled\":true,\"runs\":200},\"remappings\":[],\"viaIR\":true},\"sources\":{\"@openzeppelin/contracts/access/AccessControl.sol\":{\"content\":\"// SPDX-License-Identifier: MIT\\n// OpenZeppelin Contracts (last updated v5.0.0) (access/AccessControl.sol)\\n\\npragma solidity ^0.8.20;\\n\\nimport {IAccessControl} from \\\"./IAccessControl.sol\\\";\\nimport {Context} from \\\"../utils/Context.sol\\\";\\nimport {ERC165} from \\\"../utils/introspection/ERC165.sol\\\";\\n\\n/**\\n * @dev Contract module that allows children to implement role-based access\\n * control mechanisms. This is a lightweight version that doesn't allow enumerating role\\n * members except through off-chain means by accessing the contract event logs. Some\\n * applications may benefit from on-chain enumerability, for those cases see\\n * {AccessControlEnumerable}.\\n *\\n * Roles are referred to by their `bytes32` identifier. These should be exposed\\n * in the external API and be unique. The best way to achieve this is by\\n * using `public constant` hash digests:\\n *\\n * ```solidity\\n * bytes32 public constant MY_ROLE = keccak256(\\\"MY_ROLE\\\");\\n * ```\\n *\\n * Roles can be used to represent a set of permissions. To restrict access to a\\n * function call, use {hasRole}:\\n *\\n * ```solidity\\n * function foo() public {\\n *     require(hasRole(MY_ROLE, msg.sender));\\n *     ...\\n * }\\n * ```\\n *\\n * Roles can be granted and revoked dynamically via the {grantRole} and\\n * {revokeRole} functions. Each role has an associated admin role, and only\\n * accounts that have a role's admin role can call {grantRole} and {revokeRole}.\\n *\\n * By default, the admin role for all roles is `DEFAULT_ADMIN_ROLE`, which means\\n * that only accounts with this role will be able to grant or revoke other\\n * roles. More complex role relationships can be created by using\\n * {_setRoleAdmin}.\\n *\\n * WARNING: The `DEFAULT_ADMIN_ROLE` is also its own admin: it has permission to\\n * grant and revoke this role. Extra precautions should be taken to secure\\n * accounts that have been granted it. We recommend using {AccessControlDefaultAdminRules}\\n * to enforce additional security measures for this role.\\n */\\nabstract contract AccessControl is Context, IAccessControl, ERC165 {\\n    struct RoleData {\\n        mapping(address account => bool) hasRole;\\n        bytes32 adminRole;\\n    }\\n\\n    mapping(bytes32 role => RoleData) private _roles;\\n\\n    bytes32 public constant DEFAULT_ADMIN_ROLE = 0x00;\\n\\n    /**\\n     * @dev Modifier that checks that an account has a specific role. Reverts\\n     * with an {AccessControlUnauthorizedAccount} error including the required role.\\n     */\\n    modifier onlyRole(bytes32 role) {\\n        _checkRole(role);\\n        _;\\n    }\\n\\n    /**\\n     * @dev See {IERC165-supportsInterface}.\\n     */\\n    function supportsInterface(bytes4 interfaceId) public view virtual override returns (bool) {\\n        return interfaceId == type(IAccessControl).interfaceId || super.supportsInterface(interfaceId);\\n    }\\n\\n    /**\\n     * @dev Returns `true` if `account` has been granted `role`.\\n     */\\n    function hasRole(bytes32 role, address account) public view virtual returns (bool) {\\n        return _roles[role].hasRole[account];\\n    }\\n\\n    /**\\n     * @dev Reverts with an {AccessControlUnauthorizedAccount} error if `_msgSender()`\\n     * is missing `role`. Overriding this function changes the behavior of the {onlyRole} modifier.\\n     */\\n    function _checkRole(bytes32 role) internal view virtual {\\n        _checkRole(role, _msgSender());\\n    }\\n\\n    /**\\n     * @dev Reverts with an {AccessControlUnauthorizedAccount} error if `account`\\n     * is missing `role`.\\n     */\\n    function _checkRole(bytes32 role, address account) internal view virtual {\\n        if (!hasRole(role, account)) {\\n            revert AccessControlUnauthorizedAccount(account, role);\\n        }\\n    }\\n\\n    /**\\n     * @dev Returns the admin role that controls `role`. See {grantRole} and\\n     * {revokeRole}.\\n     *\\n     * To change a role's admin, use {_setRoleAdmin}.\\n     */\\n    function getRoleAdmin(bytes32 role) public view virtual returns (bytes32) {\\n        return _roles[role].adminRole;\\n    }\\n\\n    /**\\n     * @dev Grants `role` to `account`.\\n     *\\n     * If `account` had not been already granted `role`, emits a {RoleGranted}\\n     * event.\\n     *\\n     * Requirements:\\n     *\\n     * - the caller must have ``role``'s admin role.\\n     *\\n     * May emit a {RoleGranted} event.\\n     */\\n    function grantRole(bytes32 role, address account) public virtual onlyRole(getRoleAdmin(role)) {\\n        _grantRole(role, account);\\n    }\\n\\n    /**\\n     * @dev Revokes `role` from `account`.\\n     *\\n     * If `account` had been granted `role`, emits a {RoleRevoked} event.\\n     *\\n     * Requirements:\\n     *\\n     * - the caller must have ``role``'s admin role.\\n     *\\n     * May emit a {RoleRevoked} event.\\n     */\\n    function revokeRole(bytes32 role, address account) public virtual onlyRole(getRoleAdmin(role)) {\\n        _revokeRole(role, account);\\n    }\\n\\n    /**\\n     * @dev Revokes `role` from the calling account.\\n     *\\n     * Roles are often managed via {grantRole} and {revokeRole}: this function's\\n     * purpose is to provide a mechanism for accounts to lose their privileges\\n     * if they are compromised (such as when a trusted device is misplaced).\\n     *\\n     * If the calling account had been revoked `role`, emits a {RoleRevoked}\\n     * event.\\n     *\\n     * Requirements:\\n     *\\n     * - the caller must be `callerConfirmation`.\\n     *\\n     * May emit a {RoleRevoked} event.\\n     */\\n    function renounceRole(bytes32 role, address callerConfirmation) public virtual {\\n        if (callerConfirmation != _msgSender()) {\\n            revert AccessControlBadConfirmation();\\n        }\\n\\n        _revokeRole(role, callerConfirmation);\\n    }\\n\\n    /**\\n     * @dev Sets `adminRole` as ``role``'s admin role.\\n     *\\n     * Emits a {RoleAdminChanged} event.\\n     */\\n    function _setRoleAdmin(bytes32 role, bytes32 adminRole) internal virtual {\\n        bytes32 previousAdminRole = getRoleAdmin(role);\\n        _roles[role].adminRole = adminRole;\\n        emit RoleAdminChanged(role, previousAdminRole, adminRole);\\n    }\\n\\n    /**\\n     * @dev Attempts to grant `role` to `account` and returns a boolean indicating if `role` was granted.\\n     *\\n     * Internal function without access restriction.\\n     *\\n     * May emit a {RoleGranted} event.\\n     */\\n    function _grantRole(bytes32 role, address account) internal virtual returns (bool) {\\n        if (!hasRole(role, account)) {\\n            _roles[role].hasRole[account] = true;\\n            emit RoleGranted(role, account, _msgSender());\\n            return true;\\n        } else {\\n            return false;\\n        }\\n    }\\n\\n    /**\\n     * @dev Attempts to revoke `role` to `account` and returns a boolean indicating if `role` was revoked.\\n     *\\n     * Internal function without access restriction.\\n     *\\n     * May emit a {RoleRevoked} event.\\n     */\\n    function _revokeRole(bytes32 role, address account) internal virtual returns (bool) {\\n        if (hasRole(role, account)) {\\n            _roles[role].hasRole[account] = false;\\n            emit RoleRevoked(role, account, _msgSender());\\n            return true;\\n        } else {\\n            return false;\\n        }\\n    }\\n}\\n\",\"keccak256\":\"0xa0e92d42942f4f57c5be50568dac11e9d00c93efcb458026e18d2d9b9b2e7308\",\"license\":\"MIT\"},\"@openzeppelin/contracts/access/IAccessControl.sol\":{\"content\":\"// SPDX-License-Identifier: MIT\\n// OpenZeppelin Contracts (last updated v5.0.0) (access/IAccessControl.sol)\\n\\npragma solidity ^0.8.20;\\n\\n/**\\n * @dev External interface of AccessControl declared to support ERC165 detection.\\n */\\ninterface IAccessControl {\\n    /**\\n     * @dev The `account` is missing a role.\\n     */\\n    error AccessControlUnauthorizedAccount(address account, bytes32 neededRole);\\n\\n    /**\\n     * @dev The caller of a function is not the expected one.\\n     *\\n     * NOTE: Don't confuse with {AccessControlUnauthorizedAccount}.\\n     */\\n    error AccessControlBadConfirmation();\\n\\n    /**\\n     * @dev Emitted when `newAdminRole` is set as ``role``'s admin role, replacing `previousAdminRole`\\n     *\\n     * `DEFAULT_ADMIN_ROLE` is the starting admin for all roles, despite\\n     * {RoleAdminChanged} not being emitted signaling this.\\n     */\\n    event RoleAdminChanged(bytes32 indexed role, bytes32 indexed previousAdminRole, bytes32 indexed newAdminRole);\\n\\n    /**\\n     * @dev Emitted when `account` is granted `role`.\\n     *\\n     * `sender` is the account that originated the contract call, an admin role\\n     * bearer except when using {AccessControl-_setupRole}.\\n     */\\n    event RoleGranted(bytes32 indexed role, address indexed account, address indexed sender);\\n\\n    /**\\n     * @dev Emitted when `account` is revoked `role`.\\n     *\\n     * `sender` is the account that originated the contract call:\\n     *   - if using `revokeRole`, it is the admin role bearer\\n     *   - if using `renounceRole`, it is the role bearer (i.e. `account`)\\n     */\\n    event RoleRevoked(bytes32 indexed role, address indexed account, address indexed sender);\\n\\n    /**\\n     * @dev Returns `true` if `account` has been granted `role`.\\n     */\\n    function hasRole(bytes32 role, address account) external view returns (bool);\\n\\n    /**\\n     * @dev Returns the admin role that controls `role`. See {grantRole} and\\n     * {revokeRole}.\\n     *\\n     * To change a role's admin, use {AccessControl-_setRoleAdmin}.\\n     */\\n    function getRoleAdmin(bytes32 role) external view returns (bytes32);\\n\\n    /**\\n     * @dev Grants `role` to `account`.\\n     *\\n     * If `account` had not been already granted `role`, emits a {RoleGranted}\\n     * event.\\n     *\\n     * Requirements:\\n     *\\n     * - the caller must have ``role``'s admin role.\\n     */\\n    function grantRole(bytes32 role, address account) external;\\n\\n    /**\\n     * @dev Revokes `role` from `account`.\\n     *\\n     * If `account` had been granted `role`, emits a {RoleRevoked} event.\\n     *\\n     * Requirements:\\n     *\\n     * - the caller must have ``role``'s admin role.\\n     */\\n    function revokeRole(bytes32 role, address account) external;\\n\\n    /**\\n     * @dev Revokes `role` from the calling account.\\n     *\\n     * Roles are often managed via {grantRole} and {revokeRole}: this function's\\n     * purpose is to provide a mechanism for accounts to lose their privileges\\n     * if they are compromised (such as when a trusted device is misplaced).\\n     *\\n     * If the calling account had been granted `role`, emits a {RoleRevoked}\\n     * event.\\n     *\\n     * Requirements:\\n     *\\n     * - the caller must be `callerConfirmation`.\\n     */\\n    function renounceRole(bytes32 role, address callerConfirmation) external;\\n}\\n\",\"keccak256\":\"0xb6b36edd6a2999fd243ff226d6cbf84bd71af2432bbd0dfe19392996a1d9cb41\",\"license\":\"MIT\"},\"@openzeppelin/contracts/token/ERC20/IERC20.sol\":{\"content\":\"// SPDX-License-Identifier: MIT\\n// OpenZeppelin Contracts (last updated v5.0.0) (token/ERC20/IERC20.sol)\\n\\npragma solidity ^0.8.20;\\n\\n/**\\n * @dev Interface of the ERC20 standard as defined in the EIP.\\n */\\ninterface IERC20 {\\n    /**\\n     * @dev Emitted when `value` tokens are moved from one account (`from`) to\\n     * another (`to`).\\n     *\\n     * Note that `value` may be zero.\\n     */\\n    event Transfer(address indexed from, address indexed to, uint256 value);\\n\\n    /**\\n     * @dev Emitted when the allowance of a `spender` for an `owner` is set by\\n     * a call to {approve}. `value` is the new allowance.\\n     */\\n    event Approval(address indexed owner, address indexed spender, uint256 value);\\n\\n    /**\\n     * @dev Returns the value of tokens in existence.\\n     */\\n    function totalSupply() external view returns (uint256);\\n\\n    /**\\n     * @dev Returns the value of tokens owned by `account`.\\n     */\\n    function balanceOf(address account) external view returns (uint256);\\n\\n    /**\\n     * @dev Moves a `value` amount of tokens from the caller's account to `to`.\\n     *\\n     * Returns a boolean value indicating whether the operation succeeded.\\n     *\\n     * Emits a {Transfer} event.\\n     */\\n    function transfer(address to, uint256 value) external returns (bool);\\n\\n    /**\\n     * @dev Returns the remaining number of tokens that `spender` will be\\n     * allowed to spend on behalf of `owner` through {transferFrom}. This is\\n     * zero by default.\\n     *\\n     * This value changes when {approve} or {transferFrom} are called.\\n     */\\n    function allowance(address owner, address spender) external view returns (uint256);\\n\\n    /**\\n     * @dev Sets a `value` amount of tokens as the allowance of `spender` over the\\n     * caller's tokens.\\n     *\\n     * Returns a boolean value indicating whether the operation succeeded.\\n     *\\n     * IMPORTANT: Beware that changing an allowance with this method brings the risk\\n     * that someone may use both the old and the new allowance by unfortunate\\n     * transaction ordering. One possible solution to mitigate this race\\n     * condition is to first reduce the spender's allowance to 0 and set the\\n     * desired value afterwards:\\n     * https://github.com/ethereum/EIPs/issues/20#issuecomment-263524729\\n     *\\n     * Emits an {Approval} event.\\n     */\\n    function approve(address spender, uint256 value) external returns (bool);\\n\\n    /**\\n     * @dev Moves a `value` amount of tokens from `from` to `to` using the\\n     * allowance mechanism. `value` is then deducted from the caller's\\n     * allowance.\\n     *\\n     * Returns a boolean value indicating whether the operation succeeded.\\n     *\\n     * Emits a {Transfer} event.\\n     */\\n    function transferFrom(address from, address to, uint256 value) external returns (bool);\\n}\\n\",\"keccak256\":\"0xc6a8ff0ea489379b61faa647490411b80102578440ab9d84e9a957cc12164e70\",\"license\":\"MIT\"},\"@openzeppelin/contracts/utils/Context.sol\":{\"content\":\"// SPDX-License-Identifier: MIT\\n// OpenZeppelin Contracts (last updated v5.0.1) (utils/Context.sol)\\n\\npragma solidity ^0.8.20;\\n\\n/**\\n * @dev Provides information about the current execution context, including the\\n * sender of the transaction and its data. While these are generally available\\n * via msg.sender and msg.data, they should not be accessed in such a direct\\n * manner, since when dealing with meta-transactions the account sending and\\n * paying for execution may not be the actual sender (as far as an application\\n * is concerned).\\n *\\n * This contract is only required for intermediate, library-like contracts.\\n */\\nabstract contract Context {\\n    function _msgSender() internal view virtual returns (address) {\\n        return msg.sender;\\n    }\\n\\n    function _msgData() internal view virtual returns (bytes calldata) {\\n        return msg.data;\\n    }\\n\\n    function _contextSuffixLength() internal view virtual returns (uint256) {\\n        return 0;\\n    }\\n}\\n\",\"keccak256\":\"0x493033a8d1b176a037b2cc6a04dad01a5c157722049bbecf632ca876224dd4b2\",\"license\":\"MIT\"},\"@openzeppelin/contracts/utils/introspection/ERC165.sol\":{\"content\":\"// SPDX-License-Identifier: MIT\\n// OpenZeppelin Contracts (last updated v5.0.0) (utils/introspection/ERC165.sol)\\n\\npragma solidity ^0.8.20;\\n\\nimport {IERC165} from \\\"./IERC165.sol\\\";\\n\\n/**\\n * @dev Implementation of the {IERC165} interface.\\n *\\n * Contracts that want to implement ERC165 should inherit from this contract and override {supportsInterface} to check\\n * for the additional interface id that will be supported. For example:\\n *\\n * ```solidity\\n * function supportsInterface(bytes4 interfaceId) public view virtual override returns (bool) {\\n *     return interfaceId == type(MyInterface).interfaceId || super.supportsInterface(interfaceId);\\n * }\\n * ```\\n */\\nabstract contract ERC165 is IERC165 {\\n    /**\\n     * @dev See {IERC165-supportsInterface}.\\n     */\\n    function supportsInterface(bytes4 interfaceId) public view virtual returns (bool) {\\n        return interfaceId == type(IERC165).interfaceId;\\n    }\\n}\\n\",\"keccak256\":\"0x9e8778b14317ba9e256c30a76fd6c32b960af621987f56069e1e819c77c6a133\",\"license\":\"MIT\"},\"@openzeppelin/contracts/utils/introspection/IERC165.sol\":{\"content\":\"// SPDX-License-Identifier: MIT\\n// OpenZeppelin Contracts (last updated v5.0.0) (utils/introspection/IERC165.sol)\\n\\npragma solidity ^0.8.20;\\n\\n/**\\n * @dev Interface of the ERC165 standard, as defined in the\\n * https://eips.ethereum.org/EIPS/eip-165[EIP].\\n *\\n * Implementers can declare support of contract interfaces, which can then be\\n * queried by others ({ERC165Checker}).\\n *\\n * For an implementation, see {ERC165}.\\n */\\ninterface IERC165 {\\n    /**\\n     * @dev Returns true if this contract implements the interface defined by\\n     * `interfaceId`. See the corresponding\\n     * https://eips.ethereum.org/EIPS/eip-165#how-interfaces-are-identified[EIP section]\\n     * to learn more about how these ids are created.\\n     *\\n     * This function call must use less than 30 000 gas.\\n     */\\n    function supportsInterface(bytes4 interfaceId) external view returns (bool);\\n}\\n\",\"keccak256\":\"0x4296879f55019b23e135000eb36896057e7101fb7fb859c5ef690cf14643757b\",\"license\":\"MIT\"},\"contracts/TGNVault.sol\":{\"content\":\"// SPDX-License-Identifier: GPL\\npragma solidity 0.8.28;\\n\\nimport \\\"@openzeppelin/contracts/access/AccessControl.sol\\\";\\nimport \\\"@openzeppelin/contracts/token/ERC20/IERC20.sol\\\";\\nimport \\\"./interfaces/ITGNVault.sol\\\";\\n\\n/**\\n * @title TGNVault\\n * @author Treegens Foundation\\n * @notice Staking vault for TGN with role-gated slashing.\\n */\\ncontract TGNVault is AccessControl, ITGNVault {\\n    bytes32 public constant SLASHER_ROLE = keccak256(\\\"SLASHER_ROLE\\\");\\n\\n    IERC20 private immutable tgn;\\n    uint8 public immutable slashingPercentage;\\n    address public treasury;\\n\\n    mapping(address => uint256) public stakedBalance;\\n    mapping(address => uint256) public lastStakedTime;\\n\\n    event Staked(address indexed staker, uint256 amount);\\n    event Unstaked(address indexed staker, uint256 amount);\\n    event Slashed(address indexed staker, uint256 amount);\\n    event TreasurySet(address indexed oldTreasury, address indexed newTreasury);\\n\\n    error TGNVault__InvalidInput();\\n    error TGNVault__ApproveOrIncreaseAllowance();\\n    error TGNVault__InvalidSlashingAmount();\\n    error TGNVault__NotEnoughStake();\\n    error TGNVault__TokenTransferFailed();\\n\\n    constructor(address _admin, address _tgn, uint8 _slashingPercent, address _treasury) {\\n        if (_admin == address(0) || _tgn == address(0) || _treasury == address(0)) {\\n            revert TGNVault__InvalidInput();\\n        }\\n        if (_slashingPercent > 100) revert TGNVault__InvalidInput();\\n\\n        tgn = IERC20(_tgn);\\n        treasury = _treasury;\\n        slashingPercentage = _slashingPercent;\\n\\n        _grantRole(DEFAULT_ADMIN_ROLE, _admin);\\n    }\\n\\n    /// @inheritdoc ITGNVault\\n    function setTreasury(address _treasury) external onlyRole(DEFAULT_ADMIN_ROLE) {\\n        if (_treasury == address(0)) revert TGNVault__InvalidInput();\\n        address oldTreasury = treasury;\\n        treasury = _treasury;\\n        emit TreasurySet(oldTreasury, _treasury);\\n    }\\n\\n    /// @inheritdoc ITGNVault\\n    function stake(uint256 amount) external {\\n        if (amount == 0) revert TGNVault__InvalidInput();\\n        if (tgn.allowance(msg.sender, address(this)) < amount) {\\n            revert TGNVault__ApproveOrIncreaseAllowance();\\n        }\\n        if (!tgn.transferFrom(msg.sender, address(this), amount)) {\\n            revert TGNVault__TokenTransferFailed();\\n        }\\n\\n        stakedBalance[msg.sender] += amount;\\n        lastStakedTime[msg.sender] = block.timestamp;\\n\\n        emit Staked(msg.sender, amount);\\n    }\\n\\n    /// @inheritdoc ITGNVault\\n    function unstake(uint256 amount) external {\\n        if (amount == 0) revert TGNVault__InvalidInput();\\n        if (stakedBalance[msg.sender] < amount) revert TGNVault__NotEnoughStake();\\n\\n        stakedBalance[msg.sender] -= amount;\\n\\n        if (!tgn.transfer(msg.sender, amount)) revert TGNVault__TokenTransferFailed();\\n\\n        emit Unstaked(msg.sender, amount);\\n    }\\n\\n    /// @inheritdoc ITGNVault\\n    function slash(address staker) external onlyRole(SLASHER_ROLE) {\\n        uint256 bal = stakedBalance[staker];\\n        if (bal == 0) revert TGNVault__InvalidSlashingAmount();\\n\\n        uint256 slashAmt = (uint256(slashingPercentage) * bal) / 100;\\n        stakedBalance[staker] = bal - slashAmt;\\n\\n        if (!tgn.transfer(treasury, slashAmt)) revert TGNVault__TokenTransferFailed();\\n\\n        emit Slashed(staker, slashAmt);\\n    }\\n\\n    /// @inheritdoc ITGNVault\\n    function getStakedBalance(address staker) external view returns (uint256) {\\n        return stakedBalance[staker];\\n    }\\n\\n    /// @inheritdoc ITGNVault\\n    function getLastStakedTime(address staker) external view returns (uint256) {\\n        return lastStakedTime[staker];\\n    }\\n}\\n\",\"keccak256\":\"0xea45ee5033ecb665122dee9a3530241f415bb6e728158325094868ad21b8ba2e\",\"license\":\"GPL\"},\"contracts/interfaces/ITGNVault.sol\":{\"content\":\"// SPDX-License-Identifier: GPL\\npragma solidity 0.8.28;\\n\\nimport \\\"@openzeppelin/contracts/access/IAccessControl.sol\\\";\\n\\n/**\\n * @title ITGNVault\\n * @notice External interface for the TGN staking vault.\\n * @dev Staking is permissionless; slashing and treasury configuration are role-gated.\\n *\\n * Access is managed through {IAccessControl}. The TGNVault implementation defines:\\n * - `SLASHER_ROLE` \\u2014 required to call {slash}\\n * - `DEFAULT_ADMIN_ROLE` \\u2014 grants and revokes `SLASHER_ROLE` and may call {setTreasury}\\n */\\ninterface ITGNVault is IAccessControl {\\n    /**\\n     * @notice Stakes `amount` of TGN from the caller into the vault.\\n     * @param amount Number of TGN tokens to stake, in the token's smallest unit (wei).\\n     *\\n     * Requirements:\\n     * - `amount` must be greater than zero.\\n     * - Caller must have approved the vault for at least `amount`.\\n     */\\n    function stake(uint256 amount) external;\\n\\n    /**\\n     * @notice Unstakes `amount` of TGN back to the caller.\\n     * @param amount Number of TGN tokens to withdraw, in the token's smallest unit (wei).\\n     *\\n     * Requirements:\\n     * - `amount` must be greater than zero.\\n     * - Caller must have at least `amount` staked.\\n     */\\n    function unstake(uint256 amount) external;\\n\\n    /**\\n     * @notice Slashes a percentage of a staker's balance and sends it to the treasury.\\n     * @param staker Account whose stake is reduced.\\n     *\\n     * Requirements:\\n     * - Caller must have `SLASHER_ROLE`.\\n     * - `staker` must have a non-zero staked balance.\\n     */\\n    function slash(address staker) external;\\n\\n    /**\\n     * @notice Updates the treasury address that receives slashed TGN.\\n     * @param treasury New treasury recipient.\\n     *\\n     * Requirements:\\n     * - Caller must have `DEFAULT_ADMIN_ROLE`.\\n     * - `treasury` must not be the zero address.\\n     */\\n    function setTreasury(address treasury) external;\\n\\n    /**\\n     * @notice Returns the amount of TGN a staker currently has in the vault.\\n     * @param staker Account to query.\\n     */\\n    function getStakedBalance(address staker) external view returns (uint256);\\n\\n    /**\\n     * @notice Returns the timestamp of a staker's most recent stake deposit.\\n     * @param staker Account to query.\\n     */\\n    function getLastStakedTime(address staker) external view returns (uint256);\\n}\\n\",\"keccak256\":\"0xef00684737fbd31845ca9ad3a07a5052d9b63d4a3d1effb9c9ce19a0d99de054\",\"license\":\"GPL\"}},\"version\":1}",
+  "bytecode": "0x60c03461013457601f610d3538819003918201601f19168301916001600160401b0383118484101761013957808492608094604052833981010312610134576100478161014f565b6100536020830161014f565b9160408101519060ff821690818303610134576060610072910161014f565b906001600160a01b038416158015610123575b8015610112575b61010157606410610101576001600160a01b03938416608052600180546001600160a01b031916919094161790925560a0919091526100ca90610163565b50604051610b2390816101f282396080518181816102f70152818161047601526107ff015260a05181818161027101526106410152f35b63e0e026e960e01b60005260046000fd5b506001600160a01b0382161561008c565b506001600160a01b03851615610085565b600080fd5b634e487b7160e01b600052604160045260246000fd5b51906001600160a01b038216820361013457565b6001600160a01b0381166000908152600080516020610d15833981519152602052604090205460ff166101eb576001600160a01b03166000818152600080516020610d1583398151915260205260408120805460ff191660011790553391907f2f8788117e7eff1d82e926ec794901d17c78024a50270940304540a733656f0d8180a4600190565b5060009056fe608080604052600436101561001357600080fd5b60003560e01c90816301ffc9a7146108c957508063248a9ca3146108945780632e17de78146107895780632f2ff15d1461074957806336568abe146107035780633a02a42d1461068e5780635095af64146106c8578063602172671461068e57806361d027b31461066557806369666a49146106275780637c397e641461040757806391d14854146105da578063a217fddf146105be578063a694fc3a14610441578063c57a202c14610407578063c96be4cb146101ff578063d547741f146101b85763f0f44260146100e557600080fd5b346101b35760203660031901126101b3576100fe610932565b3360009081527fad3228b676f7d3cd4284a5443f17f1962b36e491b30a40b2405849e597ba5fb5602052604090205460ff1615610199576001600160a01b0316801561018857600180546001600160a01b0319811683179091556001600160a01b03167f21eb548722a564f6e09f039f7aa858ae94c911910f3823b37af2250eeca4f403600080a3005b63e0e026e960e01b60005260046000fd5b63e2517d3f60e01b60005233600452600060245260446000fd5b600080fd5b346101b35760403660031901126101b3576101fd6004356101d761091c565b906101f86101f382600052600060205260016040600020015490565b6109a5565b610a6b565b005b346101b35760203660031901126101b357610218610932565b3360009081527fab95ee8443670cc2f20498fec769f3646c2375509362f6df15e28d91d3395118602052604090205460ff16156103ce576001600160a01b031660008181526002602052604090205480156103bd5760ff7f000000000000000000000000000000000000000000000000000000000000000016818102908082048314901517156103a75760646102b091048092610948565b600083815260026020908152604080832093909355600154925163a9059cbb60e01b81526001600160a01b03938416600482015260248101859052929091839160449183917f0000000000000000000000000000000000000000000000000000000000000000165af190811561039b5760009161036c575b501561035b5760207f4ed05e9673c26d2ed44f7ef6a7f2942df0ee3b5e1e17db4b99f9dcd261a339cd91604051908152a2005b630a6d0f8160e41b60005260046000fd5b61038e915060203d602011610394575b6103868183610955565b81019061098d565b83610328565b503d61037c565b6040513d6000823e3d90fd5b634e487b7160e01b600052601160045260246000fd5b6315c909cf60e11b60005260046000fd5b63e2517d3f60e01b600052336004527f12b42e8a160f6064dc959c6f251e3af0750ad213dbecf573b4710d67d6c28e3960245260446000fd5b346101b35760203660031901126101b3576001600160a01b03610428610932565b1660005260036020526020604060002054604051908152f35b346101b35760203660031901126101b357600435801561018857604051636eb1769f60e11b81523360048201523060248201527f00000000000000000000000000000000000000000000000000000000000000006001600160a01b031690602081604481855afa801561039b578391600091610589575b50106105785760206000916064604051809481936323b872dd60e01b83523360048401523060248401528760448401525af190811561039b57600091610559575b501561035b5733600052600260205260406000208054908282018092116103a75755336000526003602052426040600020556040519081527f9e71bc8eea02a63969f509818f2dafb9254532904319f9dbda79b67bd34a5f3d60203392a2005b610572915060203d602011610394576103868183610955565b826104f9565b6306641aa760e41b60005260046000fd5b9150506020813d6020116105b6575b816105a560209383610955565b810103126101b357829051846104b8565b3d9150610598565b346101b35760003660031901126101b357602060405160008152f35b346101b35760403660031901126101b3576105f361091c565b600435600052600060205260406000209060018060a01b0316600052602052602060ff604060002054166040519015158152f35b346101b35760003660031901126101b357602060405160ff7f0000000000000000000000000000000000000000000000000000000000000000168152f35b346101b35760003660031901126101b3576001546040516001600160a01b039091168152602090f35b346101b35760203660031901126101b3576001600160a01b036106af610932565b1660005260026020526020604060002054604051908152f35b346101b35760003660031901126101b35760206040517f12b42e8a160f6064dc959c6f251e3af0750ad213dbecf573b4710d67d6c28e398152f35b346101b35760403660031901126101b35761071c61091c565b336001600160a01b03821603610738576101fd90600435610a6b565b63334bd91960e11b60005260046000fd5b346101b35760403660031901126101b3576101fd60043561076861091c565b906107846101f382600052600060205260016040600020015490565b6109e0565b346101b35760203660031901126101b35760043580156101885733600052600260205280604060002054106108835733600052600260205260406000206107d1828254610948565b905560405163a9059cbb60e01b81523360048201526024810182905260208160448160006001600160a01b037f0000000000000000000000000000000000000000000000000000000000000000165af190811561039b57600091610864575b501561035b576040519081527f0f5bb82176feb1b5e747e28471aa92156a04d9f3ab9f45f28e2d704232b93f7560203392a2005b61087d915060203d602011610394576103868183610955565b82610830565b6338a54f6b60e01b60005260046000fd5b346101b35760203660031901126101b35760206108c1600435600052600060205260016040600020015490565b604051908152f35b346101b35760203660031901126101b3576004359063ffffffff60e01b82168092036101b357602091637965db0b60e01b811490811561090b575b5015158152f35b6301ffc9a760e01b14905083610904565b602435906001600160a01b03821682036101b357565b600435906001600160a01b03821682036101b357565b919082039182116103a757565b90601f8019910116810190811067ffffffffffffffff82111761097757604052565b634e487b7160e01b600052604160045260246000fd5b908160209103126101b3575180151581036101b35790565b60008181526020818152604080832033845290915290205460ff16156109c85750565b63e2517d3f60e01b6000523360045260245260446000fd5b6000818152602081815260408083206001600160a01b038616845290915290205460ff16610a64576000818152602081815260408083206001600160a01b0395909516808452949091528120805460ff19166001179055339291907f2f8788117e7eff1d82e926ec794901d17c78024a50270940304540a733656f0d9080a4600190565b5050600090565b6000818152602081815260408083206001600160a01b038616845290915290205460ff1615610a64576000818152602081815260408083206001600160a01b0395909516808452949091528120805460ff19169055339291907ff6391f5c32d9c69d2a47ea670b442974b53935d1edc7fd64eb21e047a839171b9080a460019056fea26469706673582212200f30794ca32a13dd600d3d77a9a59b205a433cdeed4eb27325d0973966c8111d64736f6c634300081c0033ad3228b676f7d3cd4284a5443f17f1962b36e491b30a40b2405849e597ba5fb5",
+  "deployedBytecode": "0x608080604052600436101561001357600080fd5b60003560e01c90816301ffc9a7146108c957508063248a9ca3146108945780632e17de78146107895780632f2ff15d1461074957806336568abe146107035780633a02a42d1461068e5780635095af64146106c8578063602172671461068e57806361d027b31461066557806369666a49146106275780637c397e641461040757806391d14854146105da578063a217fddf146105be578063a694fc3a14610441578063c57a202c14610407578063c96be4cb146101ff578063d547741f146101b85763f0f44260146100e557600080fd5b346101b35760203660031901126101b3576100fe610932565b3360009081527fad3228b676f7d3cd4284a5443f17f1962b36e491b30a40b2405849e597ba5fb5602052604090205460ff1615610199576001600160a01b0316801561018857600180546001600160a01b0319811683179091556001600160a01b03167f21eb548722a564f6e09f039f7aa858ae94c911910f3823b37af2250eeca4f403600080a3005b63e0e026e960e01b60005260046000fd5b63e2517d3f60e01b60005233600452600060245260446000fd5b600080fd5b346101b35760403660031901126101b3576101fd6004356101d761091c565b906101f86101f382600052600060205260016040600020015490565b6109a5565b610a6b565b005b346101b35760203660031901126101b357610218610932565b3360009081527fab95ee8443670cc2f20498fec769f3646c2375509362f6df15e28d91d3395118602052604090205460ff16156103ce576001600160a01b031660008181526002602052604090205480156103bd5760ff7f000000000000000000000000000000000000000000000000000000000000000016818102908082048314901517156103a75760646102b091048092610948565b600083815260026020908152604080832093909355600154925163a9059cbb60e01b81526001600160a01b03938416600482015260248101859052929091839160449183917f0000000000000000000000000000000000000000000000000000000000000000165af190811561039b5760009161036c575b501561035b5760207f4ed05e9673c26d2ed44f7ef6a7f2942df0ee3b5e1e17db4b99f9dcd261a339cd91604051908152a2005b630a6d0f8160e41b60005260046000fd5b61038e915060203d602011610394575b6103868183610955565b81019061098d565b83610328565b503d61037c565b6040513d6000823e3d90fd5b634e487b7160e01b600052601160045260246000fd5b6315c909cf60e11b60005260046000fd5b63e2517d3f60e01b600052336004527f12b42e8a160f6064dc959c6f251e3af0750ad213dbecf573b4710d67d6c28e3960245260446000fd5b346101b35760203660031901126101b3576001600160a01b03610428610932565b1660005260036020526020604060002054604051908152f35b346101b35760203660031901126101b357600435801561018857604051636eb1769f60e11b81523360048201523060248201527f00000000000000000000000000000000000000000000000000000000000000006001600160a01b031690602081604481855afa801561039b578391600091610589575b50106105785760206000916064604051809481936323b872dd60e01b83523360048401523060248401528760448401525af190811561039b57600091610559575b501561035b5733600052600260205260406000208054908282018092116103a75755336000526003602052426040600020556040519081527f9e71bc8eea02a63969f509818f2dafb9254532904319f9dbda79b67bd34a5f3d60203392a2005b610572915060203d602011610394576103868183610955565b826104f9565b6306641aa760e41b60005260046000fd5b9150506020813d6020116105b6575b816105a560209383610955565b810103126101b357829051846104b8565b3d9150610598565b346101b35760003660031901126101b357602060405160008152f35b346101b35760403660031901126101b3576105f361091c565b600435600052600060205260406000209060018060a01b0316600052602052602060ff604060002054166040519015158152f35b346101b35760003660031901126101b357602060405160ff7f0000000000000000000000000000000000000000000000000000000000000000168152f35b346101b35760003660031901126101b3576001546040516001600160a01b039091168152602090f35b346101b35760203660031901126101b3576001600160a01b036106af610932565b1660005260026020526020604060002054604051908152f35b346101b35760003660031901126101b35760206040517f12b42e8a160f6064dc959c6f251e3af0750ad213dbecf573b4710d67d6c28e398152f35b346101b35760403660031901126101b35761071c61091c565b336001600160a01b03821603610738576101fd90600435610a6b565b63334bd91960e11b60005260046000fd5b346101b35760403660031901126101b3576101fd60043561076861091c565b906107846101f382600052600060205260016040600020015490565b6109e0565b346101b35760203660031901126101b35760043580156101885733600052600260205280604060002054106108835733600052600260205260406000206107d1828254610948565b905560405163a9059cbb60e01b81523360048201526024810182905260208160448160006001600160a01b037f0000000000000000000000000000000000000000000000000000000000000000165af190811561039b57600091610864575b501561035b576040519081527f0f5bb82176feb1b5e747e28471aa92156a04d9f3ab9f45f28e2d704232b93f7560203392a2005b61087d915060203d602011610394576103868183610955565b82610830565b6338a54f6b60e01b60005260046000fd5b346101b35760203660031901126101b35760206108c1600435600052600060205260016040600020015490565b604051908152f35b346101b35760203660031901126101b3576004359063ffffffff60e01b82168092036101b357602091637965db0b60e01b811490811561090b575b5015158152f35b6301ffc9a760e01b14905083610904565b602435906001600160a01b03821682036101b357565b600435906001600160a01b03821682036101b357565b919082039182116103a757565b90601f8019910116810190811067ffffffffffffffff82111761097757604052565b634e487b7160e01b600052604160045260246000fd5b908160209103126101b3575180151581036101b35790565b60008181526020818152604080832033845290915290205460ff16156109c85750565b63e2517d3f60e01b6000523360045260245260446000fd5b6000818152602081815260408083206001600160a01b038616845290915290205460ff16610a64576000818152602081815260408083206001600160a01b0395909516808452949091528120805460ff19166001179055339291907f2f8788117e7eff1d82e926ec794901d17c78024a50270940304540a733656f0d9080a4600190565b5050600090565b6000818152602081815260408083206001600160a01b038616845290915290205460ff1615610a64576000818152602081815260408083206001600160a01b0395909516808452949091528120805460ff19169055339291907ff6391f5c32d9c69d2a47ea670b442974b53935d1edc7fd64eb21e047a839171b9080a460019056fea26469706673582212200f30794ca32a13dd600d3d77a9a59b205a433cdeed4eb27325d0973966c8111d64736f6c634300081c0033",
+  "devdoc": {
+    "author": "Treegens Foundation",
+    "errors": {
+      "AccessControlBadConfirmation()": [
+        {
+          "details": "The caller of a function is not the expected one. NOTE: Don't confuse with {AccessControlUnauthorizedAccount}."
+        }
+      ],
+      "AccessControlUnauthorizedAccount(address,bytes32)": [
+        {
+          "details": "The `account` is missing a role."
+        }
+      ]
+    },
+    "events": {
+      "RoleAdminChanged(bytes32,bytes32,bytes32)": {
+        "details": "Emitted when `newAdminRole` is set as ``role``'s admin role, replacing `previousAdminRole` `DEFAULT_ADMIN_ROLE` is the starting admin for all roles, despite {RoleAdminChanged} not being emitted signaling this."
+      },
+      "RoleGranted(bytes32,address,address)": {
+        "details": "Emitted when `account` is granted `role`. `sender` is the account that originated the contract call, an admin role bearer except when using {AccessControl-_setupRole}."
+      },
+      "RoleRevoked(bytes32,address,address)": {
+        "details": "Emitted when `account` is revoked `role`. `sender` is the account that originated the contract call:   - if using `revokeRole`, it is the admin role bearer   - if using `renounceRole`, it is the role bearer (i.e. `account`)"
+      }
+    },
+    "kind": "dev",
+    "methods": {
+      "getLastStakedTime(address)": {
+        "params": {
+          "staker": "Account to query."
+        }
+      },
+      "getRoleAdmin(bytes32)": {
+        "details": "Returns the admin role that controls `role`. See {grantRole} and {revokeRole}. To change a role's admin, use {_setRoleAdmin}."
+      },
+      "getStakedBalance(address)": {
+        "params": {
+          "staker": "Account to query."
+        }
+      },
+      "grantRole(bytes32,address)": {
+        "details": "Grants `role` to `account`. If `account` had not been already granted `role`, emits a {RoleGranted} event. Requirements: - the caller must have ``role``'s admin role. May emit a {RoleGranted} event."
+      },
+      "hasRole(bytes32,address)": {
+        "details": "Returns `true` if `account` has been granted `role`."
+      },
+      "renounceRole(bytes32,address)": {
+        "details": "Revokes `role` from the calling account. Roles are often managed via {grantRole} and {revokeRole}: this function's purpose is to provide a mechanism for accounts to lose their privileges if they are compromised (such as when a trusted device is misplaced). If the calling account had been revoked `role`, emits a {RoleRevoked} event. Requirements: - the caller must be `callerConfirmation`. May emit a {RoleRevoked} event."
+      },
+      "revokeRole(bytes32,address)": {
+        "details": "Revokes `role` from `account`. If `account` had been granted `role`, emits a {RoleRevoked} event. Requirements: - the caller must have ``role``'s admin role. May emit a {RoleRevoked} event."
+      },
+      "setTreasury(address)": {
+        "params": {
+          "treasury": "New treasury recipient. Requirements: - Caller must have `DEFAULT_ADMIN_ROLE`. - `treasury` must not be the zero address."
+        }
+      },
+      "slash(address)": {
+        "params": {
+          "staker": "Account whose stake is reduced. Requirements: - Caller must have `SLASHER_ROLE`. - `staker` must have a non-zero staked balance."
+        }
+      },
+      "stake(uint256)": {
+        "params": {
+          "amount": "Number of TGN tokens to stake, in the token's smallest unit (wei). Requirements: - `amount` must be greater than zero. - Caller must have approved the vault for at least `amount`."
+        }
+      },
+      "supportsInterface(bytes4)": {
+        "details": "See {IERC165-supportsInterface}."
+      },
+      "unstake(uint256)": {
+        "params": {
+          "amount": "Number of TGN tokens to withdraw, in the token's smallest unit (wei). Requirements: - `amount` must be greater than zero. - Caller must have at least `amount` staked."
+        }
+      }
+    },
+    "title": "TGNVault",
+    "version": 1
+  },
+  "userdoc": {
+    "kind": "user",
+    "methods": {
+      "getLastStakedTime(address)": {
+        "notice": "Returns the timestamp of a staker's most recent stake deposit."
+      },
+      "getStakedBalance(address)": {
+        "notice": "Returns the amount of TGN a staker currently has in the vault."
+      },
+      "setTreasury(address)": {
+        "notice": "Updates the treasury address that receives slashed TGN."
+      },
+      "slash(address)": {
+        "notice": "Slashes a percentage of a staker's balance and sends it to the treasury."
+      },
+      "stake(uint256)": {
+        "notice": "Stakes `amount` of TGN from the caller into the vault."
+      },
+      "unstake(uint256)": {
+        "notice": "Unstakes `amount` of TGN back to the caller."
+      }
+    },
+    "notice": "Staking vault for TGN with role-gated slashing.",
+    "version": 1
+  },
+  "storageLayout": {
+    "storage": [
+      {
+        "astId": 26,
+        "contract": "contracts/TGNVault.sol:TGNVault",
+        "label": "_roles",
+        "offset": 0,
+        "slot": "0",
+        "type": "t_mapping(t_bytes32,t_struct(RoleData)21_storage)"
+      },
+      {
+        "astId": 544,
+        "contract": "contracts/TGNVault.sol:TGNVault",
+        "label": "treasury",
+        "offset": 0,
+        "slot": "1",
+        "type": "t_address"
+      },
+      {
+        "astId": 548,
+        "contract": "contracts/TGNVault.sol:TGNVault",
+        "label": "stakedBalance",
+        "offset": 0,
+        "slot": "2",
+        "type": "t_mapping(t_address,t_uint256)"
+      },
+      {
+        "astId": 552,
+        "contract": "contracts/TGNVault.sol:TGNVault",
+        "label": "lastStakedTime",
+        "offset": 0,
+        "slot": "3",
+        "type": "t_mapping(t_address,t_uint256)"
+      }
+    ],
+    "types": {
+      "t_address": {
+        "encoding": "inplace",
+        "label": "address",
+        "numberOfBytes": "20"
+      },
+      "t_bool": {
+        "encoding": "inplace",
+        "label": "bool",
+        "numberOfBytes": "1"
+      },
+      "t_bytes32": {
+        "encoding": "inplace",
+        "label": "bytes32",
+        "numberOfBytes": "32"
+      },
+      "t_mapping(t_address,t_bool)": {
+        "encoding": "mapping",
+        "key": "t_address",
+        "label": "mapping(address => bool)",
+        "numberOfBytes": "32",
+        "value": "t_bool"
+      },
+      "t_mapping(t_address,t_uint256)": {
+        "encoding": "mapping",
+        "key": "t_address",
+        "label": "mapping(address => uint256)",
+        "numberOfBytes": "32",
+        "value": "t_uint256"
+      },
+      "t_mapping(t_bytes32,t_struct(RoleData)21_storage)": {
+        "encoding": "mapping",
+        "key": "t_bytes32",
+        "label": "mapping(bytes32 => struct AccessControl.RoleData)",
+        "numberOfBytes": "32",
+        "value": "t_struct(RoleData)21_storage"
+      },
+      "t_struct(RoleData)21_storage": {
+        "encoding": "inplace",
+        "label": "struct AccessControl.RoleData",
+        "members": [
+          {
+            "astId": 18,
+            "contract": "contracts/TGNVault.sol:TGNVault",
+            "label": "hasRole",
+            "offset": 0,
+            "slot": "0",
+            "type": "t_mapping(t_address,t_bool)"
+          },
+          {
+            "astId": 20,
+            "contract": "contracts/TGNVault.sol:TGNVault",
+            "label": "adminRole",
+            "offset": 0,
+            "slot": "1",
+            "type": "t_bytes32"
+          }
+        ],
+        "numberOfBytes": "64"
+      },
+      "t_uint256": {
+        "encoding": "inplace",
+        "label": "uint256",
+        "numberOfBytes": "32"
+      }
+    }
+  }
+}
